@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.so
+!vendor/sysal/lib/libsysal.so
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+CMakeCache.txt
+CMakeFiles/
+third_party/sysal/.xmake/
+third_party/sysal/build/
