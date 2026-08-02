@@ -1,3 +1,9 @@
+# Canonical upstream is the public GitHub repo (used for fresh clones and CI).
+# For local development against a private working copy, temporarily repoint the
+# submodule origin to e.g. /home/chenhp2023/develop/sysal, e.g.:
+#   git -C third_party/sysal remote set-url origin /home/chenhp2023/develop/sysal
+# Once the upstream commit is pushed to GitHub, run `git submodule sync` to
+# restore the committed remote URL here.
 [submodule "third_party/sysal"]
 	path = third_party/sysal
 	url = https://github.com/Degeneracy-Evil/sysal.git

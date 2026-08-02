@@ -16,6 +16,14 @@
 - **Reason**: Keep presentation behavior testable without coupling most tests to host hardware or Sysal internals.
 - **Verification**: `uv run --no-sync pytest`.
 
+### 2026-08-02 Upgrade Sysal to v0.0.6
+
+- **Change type**: build / deps
+- **Files**: `third_party/sysal`, `vendor/sysal/lib/libsysal.so`
+- **Changes**: Advanced the pinned Sysal submodule from `138d196` (v0.0.4-era) to release tag `v0.0.6` (`2f94a7c`), and rebuilt the vendored `libsysal.so` from that source via `xmake build sysal_shared`. Restored `uv pip install -e .` so the native extension links the freshly built library.
+- **Reason**: Catch up with upstream bug fixes between v0.0.4 and v0.0.6 (notably a container environment variable misclassification) while verifying no public-API breakage. Reviewed the diff of all 20 public headers between the pinned and latest revision: changes are exclusively clang-format reformatting, with `Collect`, `System::collect()`, `to_json()`/`SerializationOptions`, and the JSON schema unchanged, so this was a source-compatible upgrade requiring no binding or data-contract edits.
+- **Verification**: `uv run --no-sync systemcard --no-color` performed a real collection against the rebuilt v0.0.6 library and rendered normally; `uv run --no-sync pytest` passed (6 tests). Confirmed the installed `systemcard/libsysal.so` in the venv is the freshly built artifact.
+
 ### 2026-07-16 Use prebuilt Sysal library
 
 - **Change type**: build / docs
