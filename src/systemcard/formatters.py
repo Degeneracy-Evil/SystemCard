@@ -26,3 +26,30 @@ def bytes_value(value: object | None) -> str:
             return f"{amount:.0f} {unit}" if unit == "B" else f"{amount:.1f} {unit}"
         amount /= 1024
     return UNKNOWN
+
+
+def frequency(value: object | None) -> str:
+    """Format a hertz value as a human frequency."""
+    if not isinstance(value, Real) or value < 0:
+        return UNKNOWN
+    hertz = float(value)
+    if hertz >= 1e9:
+        return f"{hertz / 1e9:.2f} GHz"
+    if hertz >= 1e6:
+        return f"{hertz / 1e6:.0f} MHz"
+    return UNKNOWN
+
+
+def percent(value: object | None) -> str:
+    """Format a 0-100 ratio as a percentage string."""
+    if not isinstance(value, Real) or not 0 <= value <= 100:
+        return UNKNOWN
+    return f"{float(value):.1f}%"
+
+
+def enum_text(mapping: dict[int, str], value: object | None, fallback: str = UNKNOWN) -> str:
+    """Map an integer enum value to a display string."""
+    try:
+        return mapping.get(int(value), fallback)
+    except (TypeError, ValueError):
+        return fallback

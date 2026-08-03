@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from systemcard.formatters import bytes_value, text
+from systemcard.schema import SECTIONS
 
 
 def _mapping(value: object) -> Mapping[str, Any]:
@@ -19,6 +20,7 @@ def _items(value: object) -> list[Any]:
 
 @dataclass(frozen=True)
 class Card:
+    section: str
     title: str
     rows: tuple[tuple[str, str], ...]
 
@@ -31,8 +33,16 @@ class DisplayModel:
     warnings: tuple[str, ...]
 
 
-def build(snapshot: Mapping[str, Any], compact: bool = False) -> DisplayModel:
-    """Build a resilient presentation model from a public Sysal JSON snapshot."""
+def build(
+    snapshot: Mapping[str, Any],
+    compact: bool = False,
+    sections: list[str] | None = None,
+) -> DisplayModel:
+    """Build a resilient presentation model from a public Sysal JSON snapshot.
+
+    When ``sections`` is non-empty, only the requested canonical sections are
+    shown and the ``compact`` pruning is ignored.
+    """
     info = _mapping(snapshot.get("info"))
     platform = _mapping(info.get("platform"))
     host = _mapping(platform.get("host"))
@@ -55,16 +65,18 @@ def build(snapshot: Mapping[str, Any], compact: bool = False) -> DisplayModel:
     )
 
     cards = [
-        Card("System", (("Host", hostname), ("OS", os_name or "—"), ("Architecture", text(_mapping(platform.get("architecture")).get("name"))))),
+        Card("system", "System", (("Host", hostname), ("OS", os_name or "—"), ("Architecture", text(_mapping(platform.get("architecture")).get("name"))))),
         Card(
+            "cpu",
             "CPU",
             (("Model", cpu_name), ("Packages", str(len(packages))), ("Logical CPUs", str(len(_items(cpu.get("logical_cpus"))))), ("Visible to process", str(visible_cpus))),
         ),
         Card(
+            "memory",
             "Memory",
             (("Total", bytes_value(memory.get("total_memory"))), ("Available", bytes_value(memory.get("available_memory"))), ("Type", text(memory.get("memory_type")))),
         ),
-        Card("Accelerators", (("Devices", str(len(devices))), ("Visible to process", str(visible_devices)))),
+        Card("accelerators", "Accelerators", (("Devices", str(len(devices))), ("Visible to process", str(visible_devices)))),
     ]
 
     if not compact:
@@ -72,14 +84,19 @@ def build(snapshot: Mapping[str, Any], compact: bool = False) -> DisplayModel:
         disks = _items(storage.get("devices"))
         cards.extend(
             [
-                Card("Network", (("Interfaces", str(len(interfaces))),)),
-                Card("Storage", (("Devices", str(len(disks))),)),
+                Card("network", "Network", (("Interfaces", str(len(interfaces))),)),
+                Card("storage", "Storage", (("Devices", str(len(disks))),)),
                 Card(
+                    "software",
                     "Software",
                     (("Drivers", str(len(_items(software.get("drivers"))))), ("Runtimes", str(len(_items(software.get("runtimes")))))),
                 ),
             ]
         )
+
+    if sections:
+        wanted = tuple(section for section in SECTIONS if section in sections)
+        cards = [card for card in cards if card.section in wanted]
 
     warnings = tuple(str(item) for item in _items(snapshot.get("warnings")) if item)
     return DisplayModel("SystemCard", hostname, tuple(cards), warnings)
