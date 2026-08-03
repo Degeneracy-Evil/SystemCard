@@ -7,7 +7,6 @@
 - Python 依赖优先使用 `uv pip install` 安装。
 - 当前阶段只要求在本地开发环境跑通；暂不规划 Python 版本矩阵与跨平台发布矩阵。
 - Linux 兼容性目标为 glibc 2.17+（CentOS 7 / RHEL 7）。
-- 每次后续代码或文档修改均应记录到开发日志，保留变更原因与验证方式。
 
 ## 目标与边界
 
@@ -27,7 +26,6 @@ SystemCard/
 ├── LAUNCH.md                       # Bootstrap 与 PyPI 发布方案
 ├── plan.md                         # 当前开发计划
 ├── docs/
-│   ├── devlog.md                   # 代码与文档变更记录
 │   ├── binding-contract.md         # Sysal 到 Python 的稳定数据契约
 │   └── release.md                  # 本地与 CentOS 7 wheel 验证流程
 ├── src/
@@ -62,7 +60,7 @@ SystemCard/
 ### 1. 工程基础与文档
 
 - 完善 `pyproject.toml`：包元数据、`systemcard` 命令入口与本地开发依赖。
-- 初始化 `src/` 包结构、测试配置和 `docs/devlog.md`。
+- 初始化 `src/` 包结构、测试配置。
 - 完善 README：安装、最小用法与 glibc 2.17+ 声明。
 - 使用 `uv pip install` 安装本地开发所需依赖。
 
