@@ -1,16 +1,13 @@
 """Native Sysal collection boundary."""
 
-from __future__ import annotations
-
-from collections.abc import Mapping
-from typing import Any
+from typing import Any, Dict, Mapping
 
 
 class CollectionError(RuntimeError):
     """A Sysal snapshot could not be collected."""
 
 
-def collect(scope: str = "default") -> dict[str, Any]:
+def collect(scope: str = "default") -> Dict[str, Any]:
     """Collect a JSON-compatible snapshot through the native adapter."""
     try:
         from systemcard import _native

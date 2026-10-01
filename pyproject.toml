@@ -1,16 +1,28 @@
 [build-system]
-requires = ["scikit-build-core>=0.10", "pybind11>=2.13"]
-build-backend = "scikit_build_core.build"
+requires = [
+    "scikit-build-core>=0.10; python_version >= '3.8'",
+    "pybind11>=2.13; python_version >= '3.8'",
+    "pybind11==2.10.4; python_version < '3.8'",
+    "setuptools==59.6.0; python_version < '3.8'",
+    "wheel==0.37.1; python_version < '3.8'",
+    "tomli==1.2.3; python_version < '3.8'",
+]
+build-backend = "build_backend"
+backend-path = ["packaging"]
 
 [project]
 name = "systemcard"
 version = "0.1.0"
 description = "A terminal system information card powered by Sysal"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.6.8"
 license = { text = "Apache-2.0" }
 authors = [{ name = "SystemCard contributors" }]
-dependencies = ["rich>=13.9"]
+dependencies = [
+    "rich>=12.6,<13; python_version < '3.8'",
+    "rich>=13.9; python_version >= '3.8'",
+    "dataclasses==0.8; python_version < '3.7'",
+]
 
 [project.scripts]
 systemcard = "systemcard.cli:main"
@@ -19,6 +31,10 @@ systemcard = "systemcard.cli:main"
 minimum-version = "build-system.requires"
 build-dir = "build/{wheel_tag}"
 wheel.packages = ["src/systemcard"]
+sdist.include = ["packaging/build_backend.py", "setup.py"]
+
+[tool.uv.dependency-groups]
+dev = { requires-python = ">=3.12" }
 
 [dependency-groups]
 dev = [
@@ -65,6 +81,9 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["ANN201"]
+"src/systemcard/*" = ["UP006", "UP007", "UP035", "UP045", "B905"]
+"setup.py" = ["UP006", "UP007", "UP035", "UP045"]
+"packaging/*" = ["UP006", "UP007", "UP035", "UP036", "UP045"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -109,8 +128,6 @@ test-command = [
     "systemcard --version",
     "systemcard --section system --no-color",
 ]
-audit-requires = ["auditwheel>=6.5"]
-audit-command = "auditwheel show {wheel}"
 
 [tool.cibuildwheel.linux]
 manylinux-x86_64-image = "manylinux2014"

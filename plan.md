@@ -116,4 +116,4 @@ SystemCard/
 先完成第 1 至第 4 阶段，得到一条能够真实采集并形成展示模型的本地纵向链路；之后实现 CLI 与视觉体验；最后处理 wheel、CentOS 7 验证和发布自动化。
 
 
-工程验证采用 base-py 的只读检查与 staged snapshot hook；格式修复显式执行。Python 开发与最低支持版本保持 3.12，覆盖率仅报告，不设置硬门槛，开发记录写在 Git 提交中。
+工程验证采用 base-py 的只读检查与 staged snapshot hook；格式修复显式执行。Python 开发工具保持 3.12，最低运行版本为 CentOS 7 系统自带的 3.6.8，覆盖率仅报告，不设置硬门槛，开发记录写在 Git 提交中。

@@ -6,12 +6,9 @@ guarantees the presentation side can rely on, without coupling to Sysal's C++
 internals.
 """
 
-from __future__ import annotations
+from typing import Any, Dict, Iterable, Mapping, Set, Tuple
 
-from collections.abc import Iterable, Mapping
-from typing import Any
-
-SECTIONS: tuple[str, ...] = (
+SECTIONS: Tuple[str, ...] = (
     "system",
     "cpu",
     "memory",
@@ -22,7 +19,7 @@ SECTIONS: tuple[str, ...] = (
     "execution",
 )
 
-_INFO_DOMAINS: tuple[str, ...] = (
+_INFO_DOMAINS: Tuple[str, ...] = (
     "platform",
     "cpu",
     "memory",
@@ -35,7 +32,7 @@ _INFO_DOMAINS: tuple[str, ...] = (
 )
 
 
-def _as_mapping(value: object) -> dict[str, Any]:
+def _as_mapping(value: object) -> Dict[str, Any]:
     return dict(value) if isinstance(value, Mapping) else {}
 
 
@@ -48,7 +45,7 @@ def validate_snapshot(snapshot: Mapping[str, Any]) -> None:
         raise ValueError("snapshot is missing a mapping 'info'")
 
 
-def normalize_snapshot(snapshot: Mapping[str, Any]) -> dict[str, Any]:
+def normalize_snapshot(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
     """Return a copy with guaranteed dict domains and list-valued fields.
 
     Non-structural bad data (e.g. a string where a domain mapping was expected)
@@ -72,6 +69,6 @@ def is_valid_section(name: str) -> bool:
     return name in SECTIONS
 
 
-def resolve_sections(tokens: Iterable[str]) -> set[str]:
+def resolve_sections(tokens: Iterable[str]) -> Set[str]:
     """Return the subset of ``tokens`` that are valid canonical sections."""
     return {token for token in tokens if is_valid_section(token)}

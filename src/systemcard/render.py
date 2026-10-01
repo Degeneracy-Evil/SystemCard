@@ -1,6 +1,6 @@
 """Rich terminal rendering for SystemCard display models."""
 
-from __future__ import annotations
+from typing import List
 
 from rich.console import Console, Group
 from rich.panel import Panel
@@ -28,7 +28,7 @@ def render(model: DisplayModel, console: Console) -> None:
         for label, value in card.rows:
             summary.add_row(Text(label, style=f"bold {accent}"), value_text(label, value))
 
-        details: list[Table] = []
+        details: List[Table] = []
         for detail in card.tables:
             table = Table(
                 title=Text(detail.title, style=f"bold {accent}"),
@@ -39,7 +39,9 @@ def render(model: DisplayModel, console: Console) -> None:
             for column in detail.columns:
                 table.add_column(column, overflow="fold")
             for row in detail.rows:
-                table.add_row(*(cell_text(column, value) for column, value in zip(detail.columns, row, strict=True)))
+                if len(detail.columns) != len(row):
+                    raise ValueError("Detail row does not match table columns")
+                table.add_row(*(cell_text(column, value) for column, value in zip(detail.columns, row)))
             if detail.omitted:
                 table.caption = f"… {detail.omitted} more; use --section {card.section} for all"
                 table.caption_style = "dim"

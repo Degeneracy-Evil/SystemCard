@@ -1,18 +1,18 @@
 """Formatting helpers shared by presentation models and renderers."""
 
-from __future__ import annotations
+from typing import Dict, Optional
 
 UNKNOWN = "—"
 
 
-def text(value: object | None) -> str:
+def text(value: Optional[object]) -> str:
     """Return a consistent display value for optional strings and scalars."""
     if value is None or value == "":
         return UNKNOWN
     return str(value)
 
 
-def bytes_value(value: object | None) -> str:
+def bytes_value(value: Optional[object]) -> str:
     """Format a byte count using binary units."""
     if not isinstance(value, (int, float)) or value < 0:
         return UNKNOWN
@@ -26,7 +26,7 @@ def bytes_value(value: object | None) -> str:
     return UNKNOWN
 
 
-def frequency(value: object | None) -> str:
+def frequency(value: Optional[object]) -> str:
     """Format a hertz value as a human frequency."""
     if not isinstance(value, (int, float)) or value < 0:
         return UNKNOWN
@@ -38,7 +38,7 @@ def frequency(value: object | None) -> str:
     return UNKNOWN
 
 
-def bit_rate(value: object | None) -> str:
+def bit_rate(value: Optional[object]) -> str:
     """Format a bit-per-second value using decimal network units."""
     if not isinstance(value, (int, float)) or value <= 0:
         return UNKNOWN
@@ -52,21 +52,21 @@ def bit_rate(value: object | None) -> str:
     return f"{rate:g} bps"
 
 
-def temperature(value: object | None) -> str:
+def temperature(value: Optional[object]) -> str:
     """Format a millidegree Celsius value."""
     if not isinstance(value, (int, float)):
         return UNKNOWN
     return f"{float(value) / 1000:.1f} °C"
 
 
-def yes_no(value: object | None) -> str:
+def yes_no(value: Optional[object]) -> str:
     """Format an optional boolean."""
     if not isinstance(value, bool):
         return UNKNOWN
     return "Yes" if value else "No"
 
 
-def pci_address(value: object | None) -> str:
+def pci_address(value: Optional[object]) -> str:
     """Format a serialized PCI address."""
     if not isinstance(value, dict):
         return UNKNOWN
@@ -77,14 +77,14 @@ def pci_address(value: object | None) -> str:
     return f"{domain:04x}:{bus:02x}:{device:02x}.{function:x}"
 
 
-def percent(value: object | None) -> str:
+def percent(value: Optional[object]) -> str:
     """Format a 0-100 ratio as a percentage string."""
     if not isinstance(value, (int, float)) or not 0 <= value <= 100:
         return UNKNOWN
     return f"{float(value):.1f}%"
 
 
-def enum_text(mapping: dict[int, str], value: object | None, fallback: str = UNKNOWN) -> str:
+def enum_text(mapping: Dict[int, str], value: Optional[object], fallback: str = UNKNOWN) -> str:
     """Map an integer enum value to a display string."""
     if not isinstance(value, (int, str)):
         return fallback

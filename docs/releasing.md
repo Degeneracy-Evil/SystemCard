@@ -20,7 +20,7 @@ short-lived identity issued for the configured workflow and environment.
 ## Build rehearsal
 
 Run the **Release** workflow manually on `main`. This checks the package,
-builds and tests CPython 3.12/3.13/3.14 manylinux2014 x86_64 wheels, and builds
+builds and tests CPython 3.6–3.14 manylinux2014 x86_64 wheels, and builds
 and validates the source archive. A manual run does not publish to PyPI.
 Download the wheel artifacts to install on another compatible machine before
 the first public release:
@@ -30,8 +30,10 @@ python -m pip install /path/to/systemcard-0.1.0-*.whl
 systemcard --section system --no-color
 ```
 
-Download only the wheel matching the destination Python version. Python 3.12+
+Download only the wheel matching the destination Python version. Python 3.6.8+
 and Linux x86_64 with glibc 2.17+ are the initial supported environments.
+CentOS 7 needs `python3 -m pip install --upgrade pip==21.3.1` first because its
+packaged pip predates manylinux2014 wheel support. This does not replace Python.
 
 ## Publish
 

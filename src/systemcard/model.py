@@ -1,11 +1,7 @@
 """Transform normalized snapshots into renderer-friendly cards."""
 
-from __future__ import annotations
-
-from collections import Counter
-from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Counter, List, Mapping, Optional, Tuple, Union
 
 from systemcard.formatters import (
     UNKNOWN,
@@ -49,11 +45,11 @@ def _mapping(value: object) -> Mapping[str, Any]:
     return value if isinstance(value, Mapping) else {}
 
 
-def _items(value: object) -> list[Any]:
+def _items(value: object) -> List[Any]:
     return list(value) if isinstance(value, list) else []
 
 
-def _mappings(value: object) -> list[Mapping[str, Any]]:
+def _mappings(value: object) -> List[Mapping[str, Any]]:
     return [_mapping(item) for item in _items(value)]
 
 
@@ -66,15 +62,15 @@ def _joined(values: object, separator: str = ", ") -> str:
     return separator.join(rendered) or UNKNOWN
 
 
-def _limited(items: list[Mapping[str, Any]], detailed: bool, limit: int) -> list[Mapping[str, Any]]:
+def _limited(items: List[Mapping[str, Any]], detailed: bool, limit: int) -> List[Mapping[str, Any]]:
     return items if detailed else items[:limit]
 
 
 @dataclass(frozen=True)
 class DetailTable:
     title: str
-    columns: tuple[str, ...]
-    rows: tuple[tuple[str, ...], ...]
+    columns: Tuple[str, ...]
+    rows: Tuple[Tuple[str, ...], ...]
     omitted: int = 0
 
 
@@ -82,16 +78,16 @@ class DetailTable:
 class Card:
     section: str
     title: str
-    rows: tuple[tuple[str, str], ...]
-    tables: tuple[DetailTable, ...] = ()
+    rows: Tuple[Tuple[str, str], ...]
+    tables: Tuple[DetailTable, ...] = ()
 
 
 @dataclass(frozen=True)
 class DisplayModel:
     title: str
     subtitle: str
-    cards: tuple[Card, ...]
-    warnings: tuple[str, ...]
+    cards: Tuple[Card, ...]
+    warnings: Tuple[str, ...]
     footer: str = ""
 
 
@@ -146,8 +142,8 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card
     visible = sum(item.get("visible_to_current_process") is True for item in logical)
     numa_nodes = _mappings(cpu.get("numa_nodes"))
     model_names = list(dict.fromkeys(text(item.get("model_name")) for item in packages))
-    base_frequencies: list[int] = []
-    max_frequencies: list[int] = []
+    base_frequencies: List[int] = []
+    max_frequencies: List[int] = []
     for item in packages:
         base_frequency = item.get("base_frequency")
         max_frequency = item.get("max_frequency")
@@ -167,7 +163,7 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card
         )
     isa = " ".join(enum_text(ISA_EXTENSIONS, item) for item in _items(cpu.get("isa_extensions"))) or UNKNOWN
     thermals = _mappings(cpu.get("thermal_zones"))
-    thermal_values: list[int | float] = []
+    thermal_values: List[Union[int, float]] = []
     for item in thermals:
         thermal_value = item.get("temp")
         if isinstance(thermal_value, (int, float)):
@@ -185,7 +181,7 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card
         for index, item in enumerate(packages)
     )
 
-    cache_counts: Counter[tuple[int, int, int, int, int]] = Counter()
+    cache_counts: Counter[Tuple[int, int, int, int, int]] = Counter()
     for item in _mappings(cpu.get("caches")):
         cache_counts[
             (
@@ -250,7 +246,7 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool) -
         )
         for item in shown
     )
-    tables: tuple[DetailTable, ...] = ()
+    tables: Tuple[DetailTable, ...] = ()
     if dimm_rows and show_tables:
         tables = (
             DetailTable(
@@ -326,8 +322,8 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
     ]
     source = interfaces if detailed else (preferred if preferred else interfaces)
     shown = _limited(source, detailed, 8)
-    columns: tuple[str, ...]
-    rows: tuple[tuple[str, ...], ...]
+    columns: Tuple[str, ...]
+    rows: Tuple[Tuple[str, ...], ...]
     if detailed:
         columns = ("Name", "State", "Speed", "Addresses", "Hardware")
         rows = tuple(
@@ -463,7 +459,7 @@ def _execution_card(execution: Mapping[str, Any], visible_cpu_count: int, visibl
 def build(
     snapshot: Mapping[str, Any],
     compact: bool = False,
-    sections: list[str] | None = None,
+    sections: Optional[List[str]] = None,
 ) -> DisplayModel:
     """Build a resilient presentation model from a public Sysal JSON snapshot."""
     info = _mapping(snapshot.get("info"))

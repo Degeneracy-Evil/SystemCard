@@ -1,0 +1,4 @@
+include CMakeLists.txt pyproject.toml README.md LICENSE
+recursive-include bindings *.cpp
+recursive-include packaging *.py
+recursive-include src/systemcard *.py *.pyi py.typed

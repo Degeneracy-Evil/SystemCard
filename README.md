@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-The local build requires CMake, a C++20 compiler, Python 3.12 or newer, and network access for the first build. CMake downloads the pinned [Sysal v0.0.8 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.8), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.8 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.8), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -43,4 +43,13 @@ Use `systemcard` or `uv run --locked python -m systemcard` as the entry point.
 
 ## Compatibility
 
-Release wheels target Linux x86_64 systems with glibc 2.17 or newer (CentOS 7 / RHEL 7 and newer compatible distributions). The wheel workflow builds CPython 3.12, 3.13, and 3.14 artifacts in the manylinux2014 image, repairs them with auditwheel, and runs a real collection smoke test against each installed wheel.
+Release wheels target Linux x86_64 systems with glibc 2.17 or newer (CentOS 7 / RHEL 7 and newer compatible distributions). The minimum runtime version is Python 3.6.8, matching the CentOS 7 system `python3`. The wheel workflow builds CPython 3.6 through 3.14 artifacts in the manylinux2014 image, repairs them with auditwheel, and runs a real collection smoke test against each installed wheel. A separate CentOS 7 job installs the Python 3.6 wheel and exercises collection and rendering with its actual Python 3.6.8.
+
+CentOS 7 ships an older pip that does not recognize manylinux2014 wheels. Upgrade pip without changing the system interpreter before installation:
+
+```bash
+python3 -m pip install --upgrade 'pip==21.3.1'
+python3 -m pip install /path/to/systemcard-0.1.0-cp36-cp36m-manylinux*.whl
+```
+
+Python 3.6/3.7 uses Rich 12 and a legacy build adapter; newer interpreters retain the modern build backend. The project metadata is shared by both build paths.

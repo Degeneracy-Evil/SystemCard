@@ -3,10 +3,22 @@
 import re
 from io import StringIO
 
+import pytest
 from rich.console import Console
 
 from systemcard.model import Card, DetailTable, DisplayModel
 from systemcard.render import render
+
+
+def test_render_rejects_mismatched_detail_rows() -> None:
+    model = DisplayModel(
+        title="SystemCard",
+        subtitle="node-1",
+        cards=(Card("system", "System", (), (DetailTable("Devices", ("Name", "State"), (("GPU",),)),)),),
+        warnings=(),
+    )
+    with pytest.raises(ValueError, match="row does not match"):
+        render(model, Console(file=StringIO()))
 
 
 def test_render_prints_cards_and_warnings() -> None:

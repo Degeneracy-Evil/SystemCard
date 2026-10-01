@@ -1,10 +1,10 @@
 """Semantic Rich styles used by the terminal renderer."""
 
-from __future__ import annotations
+from typing import Dict
 
 from rich.text import Text
 
-SECTION_STYLES: dict[str, str] = {
+SECTION_STYLES: Dict[str, str] = {
     "system": "bright_blue",
     "cpu": "bright_cyan",
     "memory": "bright_magenta",

@@ -1,6 +1,6 @@
 # SystemCard
 
-SystemCard is a Python 3.12+ package with a thin C++20 binding to Sysal.
+SystemCard supports Python 3.6.8+ at runtime, including the CentOS 7 system interpreter, with a thin C++20 binding to Sysal. Development tools run on Python 3.12.
 
 ## Environment
 
@@ -12,7 +12,9 @@ git config core.hooksPath .githooks
 ## Key conventions
 
 - Use uv for Python, virtual environments, dependencies, and `uv.lock`; do not add requirements files.
-- Keep Python 3.12 as the development and minimum supported version; Ruff and mypy target 3.12.
+- Keep Python 3.12 for development tools. Runtime modules must parse and run on Python 3.6.8; use typing aliases and no postponed annotations.
+- Keep modern scikit-build-core packaging; Python 3.6/3.7 uses the compatibility backend with setuptools and the same CMake target.
+- Runtime dependency markers select Rich 12 and the dataclasses backport for old interpreters.
 - Use `--locked` for development checks and runs; update dependencies and the lock explicitly.
 - Ruff owns linting, formatting, and import sorting with a 120-character line width.
 - mypy runs in strict mode; new Python code needs complete, meaningful type annotations.
@@ -24,7 +26,7 @@ git config core.hooksPath .githooks
 - Sysal comes from the versioned, SHA-256-pinned GitHub Release package configured in CMake.
 - Preserve scikit-build-core/CMake packaging, native ABI settings, and manylinux wheel validation.
 - Keep LF line endings and do not maintain a manual development log.
-- Quality CI runs on the minimum supported Python; wheel smoke tests cover published Python versions.
+- Quality CI runs on development Python. Wheel tests cover Python 3.6 through 3.14; the CentOS 7 job verifies installation and collection using its system Python 3.6.8.
 
 ## Verification
 

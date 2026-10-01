@@ -1,8 +1,7 @@
 """Command line entry point."""
 
-from __future__ import annotations
-
 import argparse
+from typing import List, Optional, Tuple
 
 from rich.console import Console
 
@@ -29,7 +28,7 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
-def _requested_sections(raw: list[str] | None) -> tuple[list[str] | None, list[str]]:
+def _requested_sections(raw: Optional[List[str]]) -> Tuple[Optional[List[str]], List[str]]:
     if not raw:
         return None, []
     tokens = []
@@ -43,7 +42,7 @@ def _requested_sections(raw: list[str] | None) -> tuple[list[str] | None, list[s
     return [section for section in SECTIONS if section in valid], unknown
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     args = parser().parse_args(argv)
     console = Console(no_color=args.no_color)
 

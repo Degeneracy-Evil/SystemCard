@@ -12,8 +12,26 @@ permissions:
 
 jobs:
   manylinux:
-    name: manylinux2014 x86_64
+    name: manylinux2014 x86_64 (${{ matrix.group }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: legacy
+            python: "3.12"
+            cibuildwheel: "2.16.5"
+            build: "cp3{6,7,8}-manylinux_x86_64"
+            frontend: build
+            audit: ""
+            audit-requires: ""
+          - group: modern
+            python: "3.14"
+            cibuildwheel: "4.1.1"
+            build: "cp3{9,10,11,12,13,14}-manylinux_x86_64"
+            frontend: "build[uv]"
+            audit: "auditwheel show {wheel}"
+            audit-requires: "auditwheel>=6.5"
 
     steps:
       - name: Check out repository
@@ -24,20 +42,52 @@ jobs:
       - name: Install Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: ${{ matrix.python }}
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.1.1
+        run: python -m pip install cibuildwheel==${{ matrix.cibuildwheel }}
 
       - name: Install uv for wheel auditing
         uses: astral-sh/setup-uv@v9.0.0
 
       - name: Build, repair, audit, and test wheels
         run: python -m cibuildwheel --platform linux --output-dir wheelhouse
+        env:
+          CIBW_BUILD: ${{ matrix.build }}
+          CIBW_BUILD_FRONTEND: ${{ matrix.frontend }}
+          CIBW_AUDIT_COMMAND: ${{ matrix.audit }}
+          CIBW_AUDIT_REQUIRES: ${{ matrix.audit-requires }}
 
       - name: Upload wheels
         uses: actions/upload-artifact@v6
         with:
-          name: systemcard-manylinux2014-x86_64
+          name: systemcard-manylinux2014-x86_64-${{ matrix.group }}
           path: wheelhouse/*.whl
           if-no-files-found: error
+
+  centos7:
+    name: CentOS 7 system Python 3.6.8
+    needs: manylinux
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download Python 3.6 wheel
+        uses: actions/download-artifact@v7
+        with:
+          name: systemcard-manylinux2014-x86_64-legacy
+          path: ${{ runner.temp }}/systemcard-wheels
+      - name: Install and run on the CentOS 7 system interpreter
+        run: |
+          docker run --rm \
+            -v "$RUNNER_TEMP/systemcard-wheels:/wheels:ro" \
+            centos:7 bash -euxc '
+              sed -i "s|^mirrorlist=|#mirrorlist=|; s|^#baseurl=http://mirror.centos.org|baseurl=https://vault.centos.org|" /etc/yum.repos.d/CentOS-*.repo
+              yum install -y python3
+              python3 -c "import sys; assert sys.version_info[:3] == (3, 6, 8)"
+              python3 -m pip install --upgrade pip==21.3.1
+              python3 -m pip install --only-binary=:all: /wheels/*-cp36-*.whl
+              python3 -c "import systemcard._native"
+              systemcard --version
+              systemcard --no-color
+              systemcard --compact --no-color
+              systemcard --section cpu,memory,network,storage --no-color
+            '
