@@ -1,9 +1,23 @@
+import sys
+from io import BytesIO, TextIOWrapper
 from typing import Never
 
 import pytest
 
 from systemcard import cli
 from systemcard.collector import CollectionError
+
+
+def test_cli_renders_on_ascii_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    output = BytesIO()
+    stream = TextIOWrapper(output, encoding="ascii")
+    monkeypatch.setattr(sys, "stdout", stream)
+    monkeypatch.setattr(cli, "collect", lambda: {"info": {}, "warnings": ["temperature: 75 °C"]})
+
+    assert cli.main(["--no-color"]) == 0
+    stream.flush()
+    assert b"SystemCard" in output.getvalue()
+    assert b"75 ?C" in output.getvalue()
 
 
 def test_cli_returns_success_when_collection_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:

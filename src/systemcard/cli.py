@@ -1,7 +1,10 @@
 """Command line entry point."""
 
 import argparse
-from typing import List, Optional, Tuple
+import sys
+from contextlib import contextmanager
+from io import TextIOWrapper
+from typing import Iterator, List, Optional, TextIO, Tuple
 
 from rich.console import Console
 
@@ -10,6 +13,22 @@ from systemcard.collector import CollectionError, collect
 from systemcard.model import build
 from systemcard.render import render
 from systemcard.schema import SECTIONS, normalize_snapshot, resolve_sections
+
+
+@contextmanager
+def _console_output() -> Iterator[TextIO]:
+    """Replace unrepresentable characters without closing the original stream."""
+    stream = sys.stdout
+    if not isinstance(stream, TextIOWrapper):
+        yield stream
+        return
+    stream.flush()
+    output = TextIOWrapper(stream.buffer, encoding=stream.encoding, errors="replace", line_buffering=True)
+    try:
+        yield output
+    finally:
+        output.flush()
+        output.detach()
 
 
 def parser() -> argparse.ArgumentParser:
@@ -44,7 +63,11 @@ def _requested_sections(raw: Optional[List[str]]) -> Tuple[Optional[List[str]], 
 
 def main(argv: Optional[List[str]] = None) -> int:
     args = parser().parse_args(argv)
-    console = Console(no_color=args.no_color)
+    with _console_output() as output:
+        return _display(args, Console(file=output, no_color=args.no_color))
+
+
+def _display(args: argparse.Namespace, console: Console) -> int:
 
     if args.list_sections:
         console.print(" ".join(SECTIONS))
