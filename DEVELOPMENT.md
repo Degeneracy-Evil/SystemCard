@@ -56,7 +56,7 @@ Sysal 的内部结构可以随着采集能力演进而调整。SystemCard 通过
 
 ## 4. Python 绑定设计
 
-SystemCard 通过 pybind11 调用 Sysal。绑定层应当保持轻量，主要完成三件事：
+SystemCard 通过 pybind11 调用固定版本的 Sysal Release package。绑定层应当保持轻量，主要完成三件事：
 
 第一，调用 Sysal 的 C++ 接口获取系统快照。第二，从 Sysal 的结构化结果中提取 SystemCard 展示需要的字段。第三，将这些字段转换为 Python 原生对象，例如 `dict`、`list`、`str`、`int` 和 `bool`。
 
@@ -115,8 +115,9 @@ systemcard/
 │       └── _sysal*.so
 ├── bindings/
 │   └── pybind_sysal.cpp
-└── third_party/
-    └── sysal/
+├── scripts/
+│   └── check.py
+└── .github/workflows/ci.yml
 ```
 
 ## 6. 终端展示设计
@@ -143,9 +144,9 @@ SystemCard 以 PyPI wheel 的形式发布。用户推荐使用 `pipx` 安装，�
 推荐构建策略为：
 
 ```text
-Sysal source
+Sysal release package
     ↓
-libsysal.a with -fPIC
+glibc 2.17 compatible libsysal.a with -fPIC
     ↓
 pybind11 extension
     ↓
@@ -178,3 +179,6 @@ v0.1.0 目标是形成稳定工具。该版本完善发布流程，补充自动�
 SystemCard 的开发应围绕“安装简单、输出清晰、结构稳定”展开。Sysal 的能力通过绑定层进入 Python，Python 层专注于组织信息和优化展示体验。
 
 绑定层保持薄而稳定，展示模型保持面向用户，渲染层保持可替换和可扩展。Sysal 的结构化能力越完整，SystemCard 的终端展示就越自然；SystemCard 的价值在于把这些结构化信息转化为用户一眼能看懂的机器名片。
+
+
+工程验证采用 base-py 的只读检查与 staged snapshot hook；格式修复显式执行。Python 开发与最低支持版本保持 3.12，覆盖率仅报告，不设置硬门槛，开发记录写在 Git 提交中。

@@ -2,9 +2,9 @@
 
 ## 当前约束
 
-- Sysal 以固定提交的 Git submodule 形式置于 `third_party/sysal`。
+- Sysal 使用固定版本与 SHA-256 的 GitHub Release package，当前为 v0.0.8。
 - SystemCard 仅依赖 Sysal 的公开头文件和公开序列化 API；不得依赖或读取其内部实现。
-- Python 依赖优先使用 `uv pip install` 安装。
+- Python 环境、依赖与锁文件统一由 `uv sync` 管理。
 - 当前阶段只要求在本地开发环境跑通；暂不规划 Python 版本矩阵与跨平台发布矩阵。
 - Linux 兼容性目标为 glibc 2.17+（CentOS 7 / RHEL 7）。
 
@@ -42,6 +42,8 @@ SystemCard/
 │       └── _native.*.so            # 编译产物，不提交源码库
 ├── bindings/
 │   └── pybind_sysal.cpp            # C++ 适配层，仅使用 Sysal 公共 API
+├── scripts/
+│   └── check.py                    # Ruff、mypy 与 pytest 统一检查入口
 ├── tests/
 │   ├── fixtures/                   # 固定、脱敏的 Sysal JSON 快照
 │   ├── test_collector.py
@@ -49,10 +51,7 @@ SystemCard/
 │   ├── test_formatters.py
 │   ├── test_render.py
 │   └── test_cli.py
-├── scripts/
-│   └── run.sh                      # 过渡 Bootstrap 脚本
-└── third_party/
-    └── sysal/                      # 固定版本 Git submodule
+└── .github/workflows/ci.yml        # 与本地相同的质量检查和 smoke test
 ```
 
 ## 分阶段步骤
@@ -62,11 +61,11 @@ SystemCard/
 - 完善 `pyproject.toml`：包元数据、`systemcard` 命令入口与本地开发依赖。
 - 初始化 `src/` 包结构、测试配置。
 - 完善 README：安装、最小用法与 glibc 2.17+ 声明。
-- 使用 `uv pip install` 安装本地开发所需依赖。
+- 使用 `uv sync --locked --dev` 安装本地开发所需依赖。
 
 ### 2. 固定 Sysal 依赖与数据契约
 
-- 以 Git submodule 添加 Sysal，并固定到已验证的 commit。
+- 通过 GitHub Release package 消费 Sysal，并固定版本与 SHA-256。
 - 在 `binding-contract.md` 明确 SystemCard 消费的字段、单位、可选字段、缺失值与契约版本。
 - 以 Sysal 公共 `to_json()` 输出作为事实源；SystemCard 只依赖自身版本化的数据契约。
 
@@ -102,7 +101,7 @@ SystemCard/
 
 ### 7. 构建与发布准备
 
-- 链接项目内 `vendor/sysal/lib/` 的预构建 Sysal 库，并将其随 wheel 安装；SystemCard 构建流程不负责编译 Sysal。
+- 下载 Sysal Release package 并静态链接其中的 `libsysal.a`；SystemCard 构建流程不负责编译 Sysal。
 - 先确保本地 wheel 可以安装和运行。
 - 本地流程稳定后，再补充 CentOS 7 / glibc 2.17+ wheel 验证与 CI。
 
@@ -115,3 +114,6 @@ SystemCard/
 ## 推荐执行顺序
 
 先完成第 1 至第 4 阶段，得到一条能够真实采集并形成展示模型的本地纵向链路；之后实现 CLI 与视觉体验；最后处理 wheel、CentOS 7 验证和发布自动化。
+
+
+工程验证采用 base-py 的只读检查与 staged snapshot hook；格式修复显式执行。Python 开发与最低支持版本保持 3.12，覆盖率仅报告，不设置硬门槛，开发记录写在 Git 提交中。

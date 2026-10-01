@@ -1,13 +1,29 @@
-.venv/
+# Python
 __pycache__/
 *.py[cod]
-*.so
-!vendor/sysal/lib/libsysal.so
 *.egg-info/
+
+# Virtual environments and tool caches
+.venv/
+.cache/
+.coverage
+.coverage.*
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+
+# Build artifacts
 build/
 dist/
-.pytest_cache/
+*.so
 CMakeCache.txt
 CMakeFiles/
-third_party/sysal/.xmake/
-third_party/sysal/build/
+
+# Editors
+.idea/
+.vscode/
+
+# Operating systems
+.DS_Store
+Thumbs.db

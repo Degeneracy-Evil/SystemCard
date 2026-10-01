@@ -1,0 +1,3 @@
+from typing import Any
+
+def collect(scope: str = "default") -> dict[str, Any]: ...

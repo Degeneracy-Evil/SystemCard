@@ -19,6 +19,7 @@ SECTIONS: tuple[str, ...] = (
     "network",
     "storage",
     "software",
+    "execution",
 )
 
 _INFO_DOMAINS: tuple[str, ...] = (
