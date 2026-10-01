@@ -3,6 +3,13 @@
 SystemCard is a terminal system information card powered by [Sysal](https://github.com/Degeneracy-Evil/sysal).
 It presents machine and current-process-visible resources in a concise Rich terminal interface.
 
+## Installation status
+
+The first PyPI release is being prepared. For now, compatible Linux machines can
+install a matching wheel downloaded from the repository's **Wheels** or
+**Release** workflow artifacts using `python -m pip install /path/to/wheel.whl`.
+See [the release guide](docs/releasing.md) for publishing and installation steps.
+
 ## Local development
 
 Install the project and development toolchain with uv:
