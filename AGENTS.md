@@ -39,3 +39,8 @@ uv run --locked systemcard --section system --no-color
 ```
 
 The quality gate checks Ruff format, Ruff lint, mypy strict, and pytest. Formatting and repair are explicit operations.
+
+## 临时文件
+
+开发过程中主动生成的临时构建、日志、采集样本和预览统一放在本项目的 `tmp/` 下，
+不写入系统 `/tmp`。`tmp/` 不提交到 Git；工具支持指定临时目录时使用项目 `tmp/`。

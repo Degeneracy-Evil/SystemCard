@@ -27,3 +27,6 @@ CMakeFiles/
 # Operating systems
 .DS_Store
 Thumbs.db
+
+# Project temporary files
+/tmp/
