@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.9 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.9), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.10 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.10), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 

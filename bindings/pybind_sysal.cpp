@@ -4,8 +4,11 @@
 #include "sysal/serialization/serialization.hpp"
 #include "sysal/sysal.hpp"
 
+#include <algorithm>
+#include <array>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace py = pybind11;
@@ -41,26 +44,23 @@ namespace
             return flags;
         flags = sysal::Collect::Platform; // The card header always includes the host identity.
         using sysal::Collect;
+        static constexpr std::array<std::pair<std::string_view, Collect>, 8> section_flags{{
+            {"system", Collect::Platform},
+            {"cpu", Collect::Cpu | Collect::Execution},
+            {"memory", Collect::Memory | Collect::Execution},
+            {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Pci},
+            {"network", Collect::Network | Collect::Execution},
+            {"storage", Collect::Storage},
+            {"software", Collect::Software},
+            {"execution", Collect::Execution | Collect::Cpu | Collect::Accelerator},
+        }};
         for(const auto &section : sections)
         {
-            if(section == "system")
-                flags = flags | Collect::Platform;
-            else if(section == "cpu")
-                flags = flags | Collect::Cpu | Collect::Execution;
-            else if(section == "memory")
-                flags = flags | Collect::Memory | Collect::Execution;
-            else if(section == "accelerators")
-                flags = flags | Collect::Accelerator | Collect::Execution | Collect::Pci;
-            else if(section == "network")
-                flags = flags | Collect::Network | Collect::Execution;
-            else if(section == "storage")
-                flags = flags | Collect::Storage;
-            else if(section == "software")
-                flags = flags | Collect::Software;
-            else if(section == "execution")
-                flags = flags | Collect::Execution | Collect::Cpu | Collect::Accelerator;
-            else
+            const auto entry = std::find_if(section_flags.begin(), section_flags.end(),
+                                            [&](const auto &item) { return item.first == section; });
+            if(entry == section_flags.end())
                 throw py::value_error("unknown collection section: " + section);
+            flags = flags | entry->second;
         }
         if(scope == "full")
             flags = flags | Collect::Raw;

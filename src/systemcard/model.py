@@ -1,7 +1,7 @@
 """Transform normalized snapshots into renderer-friendly cards."""
 
 from dataclasses import dataclass
-from typing import Any, Counter, List, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Counter, Dict, List, Mapping, Optional, Tuple, Union
 
 from systemcard.formatters import (
     UNKNOWN,
@@ -14,7 +14,23 @@ from systemcard.formatters import (
     text,
     yes_no,
 )
-from systemcard.schema import SECTIONS
+from systemcard.schema import (
+    SECTIONS,
+    integer_value,
+    number_value,
+)
+from systemcard.schema import (
+    integer_or as _integer,
+)
+from systemcard.schema import (
+    list_value as _items,
+)
+from systemcard.schema import (
+    mapping_items as _mappings,
+)
+from systemcard.schema import (
+    mapping_value as _mapping,
+)
 
 ACCELERATOR_KINDS = {0: "GPU", 1: "NPU", 2: "FPGA", 3: "Other"}
 STORAGE_KINDS = {0: "NVMe", 1: "SSD", 2: "HDD", 3: "Other"}
@@ -39,22 +55,6 @@ ISA_EXTENSIONS = {
     15: "F16C",
     16: "PCLMULQDQ",
 }
-
-
-def _mapping(value: object) -> Mapping[str, Any]:
-    return value if isinstance(value, Mapping) else {}
-
-
-def _items(value: object) -> List[Any]:
-    return list(value) if isinstance(value, list) else []
-
-
-def _mappings(value: object) -> List[Mapping[str, Any]]:
-    return [_mapping(item) for item in _items(value)]
-
-
-def _integer(value: object, default: int = 0) -> int:
-    return value if isinstance(value, int) and not isinstance(value, bool) else default
 
 
 def _joined(values: object, separator: str = ", ") -> str:
@@ -118,8 +118,8 @@ def _system_card(platform: Mapping[str, Any]) -> Card:
         or UNKNOWN
     )
     arch = text(architecture.get("name"))
-    bits = architecture.get("bits")
-    if isinstance(bits, int):
+    bits = integer_value(architecture.get("bits"))
+    if bits is not None:
         arch = f"{arch} ({bits}-bit, {text(architecture.get('byte_order'))}-endian)"
     return Card(
         "system",
@@ -136,16 +136,26 @@ def _system_card(platform: Mapping[str, Any]) -> Card:
 
 
 def _cpu_quota(cgroup: Mapping[str, Any]) -> str:
-    quota, period = cgroup.get("cpu_quota_us"), cgroup.get("cpu_period_us")
-    if isinstance(quota, int) and isinstance(period, int) and period > 0:
-        return f"{quota / period:g} CPUs"
-    return "Unlimited" if cgroup.get("cpu_limit_known") is True else UNKNOWN
+    raw_quota = cgroup.get("cpu_quota_us")
+    if raw_quota is None:
+        return "Unlimited" if cgroup.get("cpu_limit_known") is True else UNKNOWN
+    quota = integer_value(raw_quota)
+    period = integer_value(cgroup.get("cpu_period_us"))
+    if quota is None or period is None or quota <= 0 or period <= 0:
+        return UNKNOWN
+    rendered = f"{quota / period:g} CPUs"
+    return rendered if cgroup.get("cpu_limit_known") is True else f"≤ {rendered} (partial)"
 
 
 def _memory_limit(cgroup: Mapping[str, Any]) -> str:
-    if isinstance(cgroup.get("memory_limit"), int):
-        return bytes_value(cgroup["memory_limit"])
-    return "Unlimited" if cgroup.get("memory_limit_known") is True else UNKNOWN
+    raw_limit = cgroup.get("memory_limit")
+    if raw_limit is None:
+        return "Unlimited" if cgroup.get("memory_limit_known") is True else UNKNOWN
+    limit = integer_value(raw_limit)
+    if limit is None or limit < 0:
+        return UNKNOWN
+    rendered = bytes_value(limit)
+    return rendered if cgroup.get("memory_limit_known") is True else f"≤ {rendered} (partial)"
 
 
 def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any]) -> Card:
@@ -158,11 +168,11 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup:
     base_frequencies: List[int] = []
     max_frequencies: List[int] = []
     for item in packages:
-        base_frequency = item.get("base_frequency")
-        max_frequency = item.get("max_frequency")
-        if isinstance(base_frequency, int):
+        base_frequency = integer_value(item.get("base_frequency"))
+        max_frequency = integer_value(item.get("max_frequency"))
+        if base_frequency is not None:
             base_frequencies.append(base_frequency)
-        if isinstance(max_frequency, int):
+        if max_frequency is not None:
             max_frequencies.append(max_frequency)
     frequency_range = UNKNOWN
     if base_frequencies or max_frequencies:
@@ -178,8 +188,8 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup:
     thermals = _mappings(cpu.get("thermal_zones"))
     thermal_values: List[Union[int, float]] = []
     for item in thermals:
-        thermal_value = item.get("temp")
-        if isinstance(thermal_value, (int, float)):
+        thermal_value = number_value(item.get("temp"))
+        if thermal_value is not None:
             thermal_values.append(thermal_value)
 
     package_rows = tuple(
@@ -243,9 +253,9 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup:
 
 
 def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any]) -> Card:
-    total = memory.get("total_memory")
-    available = memory.get("available_memory")
-    used = total - available if isinstance(total, (int, float)) and isinstance(available, (int, float)) else None
+    total = number_value(memory.get("total_memory"))
+    available = number_value(memory.get("available_memory"))
+    used = total - available if total is not None and available is not None else None
     dimms = _mappings(memory.get("dimms"))
     populated = [item for item in dimms if item.get("present") is True]
     shown = _limited(populated, detailed, 8)
@@ -254,7 +264,7 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
             text(item.get("locator")),
             text(item.get("bank_locator")),
             bytes_value(item.get("size")),
-            f"{item['speed_mts']} MT/s" if isinstance(item.get("speed_mts"), int) else UNKNOWN,
+            f"{item['speed_mts']} MT/s" if integer_value(item.get("speed_mts")) is not None else UNKNOWN,
             text(item.get("manufacturer")),
             text(item.get("part_number")),
         )
@@ -282,7 +292,7 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
             (
                 "Configured speed",
                 f"{memory['configured_speed_mts']} MT/s"
-                if isinstance(memory.get("configured_speed_mts"), int)
+                if integer_value(memory.get("configured_speed_mts")) is not None
                 else UNKNOWN,
             ),
             (
@@ -504,41 +514,43 @@ def build(
     info = _mapping(snapshot.get("info"))
     platform = _mapping(info.get("platform"))
     hostname = text(_mapping(platform.get("host")).get("hostname"))
-    detailed = sections is not None
-    show_tables = not compact or sections is not None
+    detailed = bool(sections)
+    show_tables = not compact or detailed
     cgroup = _mapping(_mapping(info.get("execution")).get("cgroup"))
-    cpu = _mapping(info.get("cpu"))
-    accelerators = _mapping(info.get("accelerators"))
-    visible_cpu_count = sum(
-        item.get("visible_to_current_process") is True for item in _mappings(cpu.get("logical_cpus"))
-    )
-    visible_accelerator_count = sum(
-        item.get("visible_to_current_process") is True for item in _mappings(accelerators.get("devices"))
-    )
-    cards = [
-        _system_card(platform),
-        _cpu_card(cpu, detailed, show_tables, cgroup),
-        _memory_card(_mapping(info.get("memory")), detailed, show_tables, cgroup),
-        _accelerator_card(accelerators, show_tables),
-    ]
-    if not compact or sections:
-        cards.extend(
-            [
-                _network_card(_mapping(info.get("network")), detailed),
-                _storage_card(_mapping(info.get("storage")), detailed),
-                _software_card(_mapping(info.get("software"))),
-                _execution_card(_mapping(info.get("execution")), visible_cpu_count, visible_accelerator_count),
-            ]
+
+    def execution_card() -> Card:
+        visible_cpu_count = sum(
+            item.get("visible_to_current_process") is True
+            for item in _mappings(_mapping(info.get("cpu")).get("logical_cpus"))
         )
-    if sections:
-        wanted = tuple(section for section in SECTIONS if section in sections)
-        cards = [card for card in cards if card.section in wanted]
+        visible_accelerator_count = sum(
+            item.get("visible_to_current_process") is True
+            for item in _mappings(_mapping(info.get("accelerators")).get("devices"))
+        )
+        return _execution_card(_mapping(info.get("execution")), visible_cpu_count, visible_accelerator_count)
+
+    builders: Dict[str, Callable[[], Card]] = {
+        "system": lambda: _system_card(platform),
+        "cpu": lambda: _cpu_card(_mapping(info.get("cpu")), detailed, show_tables, cgroup),
+        "memory": lambda: _memory_card(_mapping(info.get("memory")), detailed, show_tables, cgroup),
+        "accelerators": lambda: _accelerator_card(_mapping(info.get("accelerators")), show_tables),
+        "network": lambda: _network_card(_mapping(info.get("network")), detailed),
+        "storage": lambda: _storage_card(_mapping(info.get("storage")), detailed),
+        "software": lambda: _software_card(_mapping(info.get("software"))),
+        "execution": execution_card,
+    }
+    wanted = (
+        tuple(section for section in SECTIONS if section in sections)
+        if sections
+        else (SECTIONS[:4] if compact else SECTIONS)
+    )
+    cards = tuple(builders[section]() for section in wanted)
     warnings = tuple(str(item) for item in _items(snapshot.get("warnings")) if item)
     meta = _mapping(snapshot.get("meta"))
     footer_parts = []
     if text(meta.get("sysal_version")) != UNKNOWN:
         footer_parts.append(f"Sysal {text(meta.get('sysal_version'))}")
-    duration = meta.get("collect_duration")
-    if isinstance(duration, (int, float)):
+    duration = number_value(meta.get("collect_duration"))
+    if duration is not None:
         footer_parts.append(f"collected in {duration * 1000:.0f} ms")
     return DisplayModel("SystemCard", hostname, tuple(cards), warnings, " · ".join(footer_parts))

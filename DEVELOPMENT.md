@@ -15,7 +15,9 @@ to_json → Python dict → model → Rich render。
 schema 处理缺失值；model 构建卡片；render 处理终端宽度和颜色。
 CPU affinity、CPU 时间配额、整机内存与 cgroup 内存上限/当前用量分别展示。
 MIG 通过 parent_uuid 与物理 GPU 关联，分开计数；软件卡片显示 ROCm、Level Zero
-和已识别的通用库。未知值统一为 `—`，已知无限制显示 Unlimited。
+和已识别的通用库。未知值统一为 `—`，已知无限制显示 Unlimited；不完整层级中的限额显示为 `≤ 数值 (partial)`。
+栏目通过显式映射决定采集位掩码和卡片构建函数，只执行选中的展示构建。
+schema 集中处理结构、整数与有限数值读取，避免 bool 被误当作容量、枚举或频率。
 固定展示样本位于 tests/fixtures，快照覆盖默认、紧凑、窄终端、缺失信息和容器数据。
 样本是人工合成脱敏数据，不能代替厂商实机验收。
 

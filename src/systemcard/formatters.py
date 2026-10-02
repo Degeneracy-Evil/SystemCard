@@ -2,6 +2,8 @@
 
 from typing import Dict, Optional
 
+from systemcard.schema import integer_value, mapping_value, number_value
+
 UNKNOWN = "—"
 
 
@@ -14,7 +16,8 @@ def text(value: Optional[object]) -> str:
 
 def bytes_value(value: Optional[object]) -> str:
     """Format a byte count using binary units."""
-    if not isinstance(value, (int, float)) or value < 0:
+    value = number_value(value)
+    if value is None or value < 0:
         return UNKNOWN
 
     amount = float(value)
@@ -28,7 +31,8 @@ def bytes_value(value: Optional[object]) -> str:
 
 def frequency(value: Optional[object]) -> str:
     """Format a hertz value as a human frequency."""
-    if not isinstance(value, (int, float)) or value < 0:
+    value = number_value(value)
+    if value is None or value < 0:
         return UNKNOWN
     hertz = float(value)
     if hertz >= 1e9:
@@ -40,7 +44,8 @@ def frequency(value: Optional[object]) -> str:
 
 def bit_rate(value: Optional[object]) -> str:
     """Format a bit-per-second value using decimal network units."""
-    if not isinstance(value, (int, float)) or value <= 0:
+    value = number_value(value)
+    if value is None or value <= 0:
         return UNKNOWN
     rate = float(value)
     if rate >= 1e9:
@@ -54,7 +59,8 @@ def bit_rate(value: Optional[object]) -> str:
 
 def temperature(value: Optional[object]) -> str:
     """Format a millidegree Celsius value."""
-    if not isinstance(value, (int, float)):
+    value = number_value(value)
+    if value is None:
         return UNKNOWN
     return f"{float(value) / 1000:.1f} °C"
 
@@ -68,25 +74,27 @@ def yes_no(value: Optional[object]) -> str:
 
 def pci_address(value: Optional[object]) -> str:
     """Format a serialized PCI address."""
-    if not isinstance(value, dict):
+    address = mapping_value(value)
+    parts = tuple(integer_value(address.get(key)) for key in ("domain", "bus", "device", "function"))
+    if any(part is None for part in parts):
         return UNKNOWN
-    parts = (value.get("domain"), value.get("bus"), value.get("device"), value.get("function"))
-    if not all(isinstance(part, int) for part in parts):
+    domain, bus, device, function = (int(part) for part in parts if part is not None)
+    if not (0 <= domain <= 0xFFFF and 0 <= bus <= 0xFF and 0 <= device <= 0x1F and 0 <= function <= 7):
         return UNKNOWN
-    domain, bus, device, function = parts
     return f"{domain:04x}:{bus:02x}:{device:02x}.{function:x}"
 
 
 def percent(value: Optional[object]) -> str:
     """Format a 0-100 ratio as a percentage string."""
-    if not isinstance(value, (int, float)) or not 0 <= value <= 100:
+    value = number_value(value)
+    if value is None or not 0 <= value <= 100:
         return UNKNOWN
     return f"{float(value):.1f}%"
 
 
 def enum_text(mapping: Dict[int, str], value: Optional[object], fallback: str = UNKNOWN) -> str:
     """Map an integer enum value to a display string."""
-    if not isinstance(value, (int, str)):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
         return fallback
     try:
         return mapping.get(int(value), fallback)
