@@ -45,7 +45,7 @@ namespace
         flags = sysal::Collect::Platform; // The card header always includes the host identity.
         using sysal::Collect;
         static constexpr std::array<std::pair<std::string_view, Collect>, 8> section_flags{{
-            {"system", Collect::Platform},
+            {"system", Collect::Platform | Collect::Pci},
             {"cpu", Collect::Cpu | Collect::Execution},
             {"memory", Collect::Memory | Collect::Execution},
             {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Pci},

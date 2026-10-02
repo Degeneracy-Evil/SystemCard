@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.12 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.12), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.13 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.13), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -79,3 +79,19 @@ CPU summaries include family/model/stepping, microcode, online CPU counts, SMT s
 and the frequency driver. `--section cpu` also shows per-thread kernel capabilities,
 cache sharing, hardware frequency bounds, policy limits and logical CPU topology.
 See [launch options](LAUNCH.md) and the [binding contract](docs/binding-contract.md).
+
+## Hardware inventory
+
+Default output summarizes CPU, machine/motherboard/chassis, memory, storage and
+network information. Select a section to see the identities and configuration:
+
+```bash
+uv run --locked systemcard --section system
+uv run --locked systemcard --section memory
+uv run --locked systemcard --section storage
+uv run --locked systemcard --section network
+```
+
+Details come from local kernel, driver and firmware reports. Unreadable fields
+remain unknown; there are no performance benchmarks or model specification guesses.
+CPU process node, IPC and undocumented IMC details are not inferred from model names.

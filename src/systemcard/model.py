@@ -92,7 +92,7 @@ class DisplayModel:
     footer: str = ""
 
 
-def _system_card(platform: Mapping[str, Any]) -> Card:
+def _system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: bool) -> Card:
     host = _mapping(platform.get("host"))
     os_info = _mapping(platform.get("os"))
     kernel = _mapping(platform.get("kernel"))
@@ -122,18 +122,109 @@ def _system_card(platform: Mapping[str, Any]) -> Card:
     bits = integer_value(architecture.get("bits"))
     if bits is not None:
         arch = f"{arch} ({bits}-bit, {text(architecture.get('byte_order'))}-endian)"
-    return Card(
-        "system",
-        "System",
-        (
-            ("Host", text(host.get("hostname"))),
-            ("Operating system", distribution),
-            ("Kernel", text(kernel.get("release"))),
-            ("Architecture", arch),
-            ("Hardware", hardware),
-            ("Firmware", f"{bios} · {'UEFI' if firmware.get('uefi') is True else 'Legacy/unknown'}"),
-        ),
-    )
+    rows: List[Tuple[str, str]] = [
+        ("Host", text(host.get("hostname"))),
+        ("Operating system", distribution),
+        ("Kernel", text(kernel.get("release"))),
+        ("Architecture", arch),
+        ("Hardware", hardware),
+        ("Firmware", f"{bios} · {'UEFI' if firmware.get('uefi') is True else 'Legacy/unknown'}"),
+    ]
+    board = _mapping(platform.get("baseboard"))
+    chassis = _mapping(platform.get("chassis"))
+    if board:
+        rows.append(("Motherboard", _joined([board.get("vendor"), board.get("name"), board.get("version")], " ")))
+    if chassis:
+        rows.append(
+            (
+                "Chassis",
+                _joined(
+                    [
+                        chassis.get("vendor"),
+                        f"SMBIOS type {chassis['type']}" if chassis.get("type") is not None else None,
+                    ],
+                    " · ",
+                ),
+            )
+        )
+    tables: List[DetailTable] = []
+    if detailed:
+        groups = (
+            (
+                "Machine identity",
+                host,
+                (
+                    ("vendor", "Vendor"),
+                    ("product_name", "Model"),
+                    ("product_family", "Family"),
+                    ("product_version", "Product version"),
+                    ("product_sku", "SKU"),
+                    ("serial", "Serial"),
+                    ("product_uuid", "Product UUID"),
+                    ("machine_id", "OS machine-id"),
+                ),
+            ),
+            (
+                "Motherboard identity",
+                board,
+                (
+                    ("vendor", "Vendor"),
+                    ("name", "Model"),
+                    ("version", "Version"),
+                    ("serial", "Serial"),
+                    ("asset_tag", "Asset tag"),
+                ),
+            ),
+            (
+                "Chassis identity",
+                chassis,
+                (
+                    ("vendor", "Vendor"),
+                    ("type", "SMBIOS type code"),
+                    ("version", "Version"),
+                    ("serial", "Serial"),
+                    ("asset_tag", "Asset tag"),
+                ),
+            ),
+            (
+                "Firmware identity",
+                firmware,
+                (
+                    ("bios_vendor", "Vendor"),
+                    ("bios_version", "Version"),
+                    ("bios_date", "Date"),
+                    ("bios_release", "BIOS revision"),
+                    ("ec_firmware_release", "EC firmware revision"),
+                ),
+            ),
+        )
+        for title, source, fields in groups:
+            values = tuple((label, text(source.get(key))) for key, label in fields if text(source.get(key)) != UNKNOWN)
+            if values:
+                tables.append(DetailTable(title, ("Field", "Value"), values))
+    if detailed:
+        slots = [
+            item for item in _mappings(pci.get("devices")) if item.get("physical_slot") or item.get("firmware_label")
+        ]
+        if slots:
+            tables.append(
+                DetailTable(
+                    "PCI slots and firmware labels",
+                    ("Slot", "PCI", "Device", "Label", "Current link", "Maximum link"),
+                    tuple(
+                        (
+                            text(item.get("physical_slot")),
+                            pci_address(item.get("address")),
+                            text(item.get("device_name")),
+                            text(item.get("firmware_label")),
+                            f"{text(item.get('current_link_speed'))} · x{text(item.get('current_link_width'))}",
+                            f"{text(item.get('max_link_speed'))} · x{text(item.get('max_link_width'))}",
+                        )
+                        for item in slots
+                    ),
+                )
+            )
+    return Card("system", "System", tuple(rows), tuple(tables))
 
 
 def _cpu_quota(cgroup: Mapping[str, Any]) -> str:
@@ -431,6 +522,61 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
                 len(populated) - len(shown),
             ),
         )
+    if detailed:
+        module_rows = tuple(
+            (
+                text(item.get("locator")),
+                text(item.get("memory_type")),
+                text(item.get("form_factor")),
+                text(item.get("rank")),
+                f"{text(item.get('data_width'))} / {text(item.get('total_width'))}",
+                f"{item['configured_speed_mts']} MT/s" if item.get("configured_speed_mts") is not None else UNKNOWN,
+                f"{item['configured_voltage_mv']} mV" if item.get("configured_voltage_mv") is not None else UNKNOWN,
+                _joined([item.get("type_detail"), item.get("edac_mode"), item.get("device_width")], " · "),
+            )
+            for item in populated
+        )
+        if module_rows:
+            tables += (
+                DetailTable(
+                    "DIMM configuration",
+                    ("Slot", "Type", "Form", "Ranks", "Data / total bits", "Configured", "Voltage", "Mode"),
+                    module_rows,
+                ),
+            )
+        identifiers = tuple(
+            (text(item.get("locator")), text(item.get("serial")), text(item.get("asset_tag")))
+            for item in populated
+            if item.get("serial") or item.get("asset_tag")
+        )
+        if identifiers:
+            tables += (DetailTable("DIMM identity", ("Slot", "Serial", "Asset tag"), identifiers),)
+        numa = _mappings(memory.get("numa_memory"))
+        if numa:
+            tables += (
+                DetailTable(
+                    "NUMA memory",
+                    ("Node", "Total", "Free", "Available"),
+                    tuple(
+                        (
+                            text(item.get("node")),
+                            bytes_value(item.get("total")),
+                            bytes_value(item.get("free")),
+                            bytes_value(item.get("available")),
+                        )
+                        for item in numa
+                    ),
+                ),
+            )
+        empty = [item for item in dimms if item.get("present") is False]
+        if empty:
+            tables += (
+                DetailTable(
+                    "Unpopulated slots",
+                    ("Slot", "Bank"),
+                    tuple((text(item.get("locator")), text(item.get("bank_locator"))) for item in empty),
+                ),
+            )
     return Card(
         "memory",
         "Memory",
@@ -527,6 +673,30 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
             )
             for item in shown
         )
+    tables: List[DetailTable] = [DetailTable("Interfaces", columns, rows, len(source) - len(shown))]
+    if detailed:
+        fields = (
+            ("device_name", "Device"),
+            ("vendor", "PCI vendor ID"),
+            ("driver", "Driver"),
+            ("mtu", "MTU (bytes)"),
+            ("duplex", "Duplex"),
+            ("physical_port_name", "Physical port"),
+            ("numa_node", "NUMA node"),
+            ("interface_index", "Interface index"),
+        )
+        hardware_rows = tuple(
+            (text(item.get("name")), label, text(item.get(key)))
+            for item in shown
+            for key, label in fields
+            if text(item.get(key)) != UNKNOWN
+        ) + tuple(
+            (text(item.get("name")), "Carrier", yes_no(item.get("carrier"))) for item in shown if "carrier" in item
+        )
+        if hardware_rows:
+            tables.append(
+                DetailTable("Interface hardware and configuration", ("Interface", "Field", "Value"), hardware_rows)
+            )
     return Card(
         "network",
         "Network",
@@ -534,14 +704,7 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
             ("Interfaces", f"{len(interfaces)} total · {len(up)} up"),
             ("Process visibility", f"{visible} of {len(interfaces)} interfaces"),
         ),
-        (
-            DetailTable(
-                "Interfaces",
-                columns,
-                rows,
-                len(source) - len(shown),
-            ),
-        ),
+        tuple(tables),
     )
 
 
@@ -550,7 +713,7 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
     useful = [item for item in devices if item.get("kind") != 3 or item.get("mount_point")]
     shown = _limited(useful if useful else devices, detailed, 12)
     total = sum(_integer(item.get("capacity")) for item in useful)
-    rows = tuple(
+    rows: Tuple[Tuple[str, ...], ...] = tuple(
         (
             text(item.get("name")),
             enum_text(STORAGE_KINDS, item.get("kind")),
@@ -561,18 +724,54 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
         )
         for item in shown
     )
+    columns: Tuple[str, ...] = ("Name", "Kind", "Capacity", "FS", "Mount", "PCI")
+    if any(item.get("model") for item in shown):
+        columns += ("Model",)
+        rows = tuple((*row, text(item.get("model"))) for row, item in zip(rows, shown))
+    tables: List[DetailTable] = [
+        DetailTable(
+            "Block devices",
+            columns,
+            rows,
+            len(useful if useful else devices) - len(shown),
+        )
+    ]
+    if detailed:
+        fields = (
+            ("model", "Model"),
+            ("vendor", "Vendor"),
+            ("serial", "Serial"),
+            ("firmware_revision", "Firmware"),
+            ("wwid", "WWID"),
+            ("transport", "Transport"),
+            ("controller_name", "PCI controller"),
+            ("numa_node", "NUMA node"),
+            ("scheduler", "I/O scheduler"),
+            ("logical_block_size", "Logical block (bytes)"),
+            ("physical_block_size", "Physical block (bytes)"),
+            ("minimum_io_size", "Minimum I/O (bytes)"),
+            ("optimal_io_size", "Optimal I/O (bytes)"),
+        )
+        hardware_rows = tuple(
+            (text(item.get("name")), label, text(item.get(key)))
+            for item in shown
+            for key, label in fields
+            if text(item.get(key)) != UNKNOWN
+        ) + tuple(
+            (text(item.get("name")), label, yes_no(item.get(key)))
+            for item in shown
+            for key, label in (("rotational", "Rotational"), ("read_only", "Read only"), ("removable", "Removable"))
+            if key in item
+        )
+        if hardware_rows:
+            tables.append(
+                DetailTable("Storage hardware and configuration", ("Device", "Field", "Value"), hardware_rows)
+            )
     return Card(
         "storage",
         "Storage",
         (("Devices", f"{len(useful)} physical/mounted · {len(devices)} total"), ("Raw capacity", bytes_value(total))),
-        (
-            DetailTable(
-                "Block devices",
-                ("Name", "Kind", "Capacity", "FS", "Mount", "PCI"),
-                rows,
-                len(useful if useful else devices) - len(shown),
-            ),
-        ),
+        tuple(tables),
     )
 
 
@@ -681,7 +880,7 @@ def build(
         return _execution_card(_mapping(info.get("execution")), visible_cpu_count, visible_accelerator_count)
 
     builders: Dict[str, Callable[[], Card]] = {
-        "system": lambda: _system_card(platform),
+        "system": lambda: _system_card(platform, _mapping(info.get("pci")), detailed),
         "cpu": lambda: _cpu_card(
             _mapping(info.get("cpu")),
             detailed,

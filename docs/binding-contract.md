@@ -10,7 +10,7 @@ All selected collections include Platform for the card header. Additional flags:
 
 | Section | Collect flags |
 | --- | --- |
-| system | Platform |
+| system | Platform, Pci |
 | cpu | Cpu, Execution |
 | memory | Memory, Execution |
 | accelerators | Accelerator, Execution, Pci |
@@ -50,3 +50,19 @@ hardware bounds, policy limits and the kernel's current reports are distinct.
 include ID, sets and shared CPU IDs; explicit identical instances are deduplicated.
 Missing fields in older snapshots remain unknown. Default CPU output is a summary;
 `--section cpu` includes the full hardware details.
+
+## Ordinary hardware details
+
+System cards show motherboard/chassis summaries; selecting system adds machine,
+board, chassis and firmware identities, plus PCI slots/firmware labels supplied by
+the kernel. UUIDs and serials remain missing when unreadable. An observed EFI
+interface confirms UEFI; its absence is not proof of legacy boot.
+
+Memory details include each DIMM's type, configured rate, rank, widths, form,
+reported voltage in mV and identity. NUMA free and available are distinct.
+Network details include the PCI name, driver, MTU, duplex, carrier and NUMA node.
+Storage details include model, serial, firmware, WWID, explicit transport, PCI
+controller and block/I/O sizes. Sizes are bytes; network speed is bps and describes
+a reported link, not maximum hardware capability. Older snapshots tolerate missing
+fields. Network/Storage use auxiliary PCI collection inside Sysal; requested flags
+retain their public meaning. RAID device reports describe the exposed logical device.
