@@ -1,11 +1,12 @@
 ──────────────────────────────────────────────── SystemCard · demo-node ────────────────────────────────────────────────
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮
 │ Host             demo-node                              │  │ Model              Demo CPU                             │
-│ Operating system Demo Linux 1.0                         │  │ Topology           1 packages · 2 cores · 4 logical     │
-│ Kernel           5.15.0                                 │  │ Process visibility 2 of 4 logical CPUs                  │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ CPU quota          1.5 CPUs                             │
-│ Hardware         —                                      │  │ NUMA               1 nodes                              │
-│ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │
+│ Operating system Demo Linux 1.0                         │  │ Architecture       x86_64                               │
+│ Kernel           5.15.0                                 │  │ Topology           1 packages · 2 cores · 4 logical     │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility 2 of 4 logical CPUs                  │
+│ Hardware         —                                      │  │ CPU quota          1.5 CPUs                             │
+│ Firmware         — · Legacy/unknown                     │  │ NUMA               1 nodes                              │
+│                                                         │  │ Frequency          base 2.40 GHz                        │
 │                                                         │  │ Governor           —                                    │
 │                                                         │  │ ISA                AVX AVX2                             │
 │                                                         │  │ Temperature        —                                    │

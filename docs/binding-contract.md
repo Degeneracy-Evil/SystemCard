@@ -39,3 +39,14 @@ Card builders are selected before presentation work. Shared schema readers norma
 mapping/list shapes and reject booleans as numeric quantities; formatters reject
 non-finite measurements. No native collection or Sysal implementation logic is
 moved into presentation code.
+
+## CPU hardware details
+
+Sysal exposes per-thread `identification` (x86 family/model/stepping, ARM IDs,
+microcode and complete kernel capability strings), optional online status, explicit
+present/online sets and SMT control/activity. Frequency policy values are Hz:
+hardware bounds, policy limits and the kernel's current reports are distinct.
+`scaling_current_frequency` may be a requested or reported value. Cache instances
+include ID, sets and shared CPU IDs; explicit identical instances are deduplicated.
+Missing fields in older snapshots remain unknown. Default CPU output is a summary;
+`--section cpu` includes the full hardware details.

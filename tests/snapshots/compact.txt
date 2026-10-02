@@ -9,6 +9,7 @@
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
 │ Model              Demo CPU                                                  │
+│ Architecture       x86_64                                                    │
 │ Topology           1 packages · 2 cores · 4 logical                          │
 │ Process visibility 2 of 4 logical CPUs                                       │
 │ CPU quota          1.5 CPUs                                                  │

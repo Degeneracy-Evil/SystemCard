@@ -1,12 +1,13 @@
 ────────────────────────────────────────────────────────────────────────────── SystemCard · demo-node ──────────────────────────────────────────────────────────────────────────────
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮  ╭──────────────────────── Memory ────────────────────────╮
 │ Host             demo-node                              │  │ Model              Demo CPU                             │  │ Host total       64.0 GiB                              │
-│ Operating system Demo Linux 1.0                         │  │ Topology           1 packages · 2 cores · 4 logical     │  │ Cgroup limit     16.0 GiB                              │
-│ Kernel           5.15.0                                 │  │ Process visibility 2 of 4 logical CPUs                  │  │ Cgroup current   8.0 GiB                               │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ CPU quota          1.5 CPUs                             │  │ Used / available 16.0 GiB / 48.0 GiB                   │
-│ Hardware         —                                      │  │ NUMA               1 nodes                              │  │ Technology       DDR4                                  │
-│ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │  │ Configured speed 3200 MT/s                             │
-│                                                         │  │ Governor           —                                    │  │ DIMM population  0 of 0 slots                          │
+│ Operating system Demo Linux 1.0                         │  │ Architecture       x86_64                               │  │ Cgroup limit     16.0 GiB                              │
+│ Kernel           5.15.0                                 │  │ Topology           1 packages · 2 cores · 4 logical     │  │ Cgroup current   8.0 GiB                               │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility 2 of 4 logical CPUs                  │  │ Used / available 16.0 GiB / 48.0 GiB                   │
+│ Hardware         —                                      │  │ CPU quota          1.5 CPUs                             │  │ Technology       DDR4                                  │
+│ Firmware         — · Legacy/unknown                     │  │ NUMA               1 nodes                              │  │ Configured speed 3200 MT/s                             │
+│                                                         │  │ Frequency          base 2.40 GHz                        │  │ DIMM population  0 of 0 slots                          │
+│                                                         │  │ Governor           —                                    │  │                                                        │
 │                                                         │  │ ISA                AVX AVX2                             │  │                                                        │
 │                                                         │  │ Temperature        —                                    │  │                                                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯

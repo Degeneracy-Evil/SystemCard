@@ -7,6 +7,7 @@ from systemcard.formatters import (
     UNKNOWN,
     bit_rate,
     bytes_value,
+    cpu_list,
     enum_text,
     frequency,
     pci_address,
@@ -158,7 +159,124 @@ def _memory_limit(cgroup: Mapping[str, Any]) -> str:
     return rendered if cgroup.get("memory_limit_known") is True else f"≤ {rendered} (partial)"
 
 
-def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any]) -> Card:
+def _cpu_hardware_tables(cpu: Mapping[str, Any], logical: List[Mapping[str, Any]], detailed: bool) -> List[DetailTable]:
+    tables: List[DetailTable] = []
+    identity_fields = (
+        ("family", "Family"),
+        ("model", "Model number"),
+        ("stepping", "Stepping"),
+        ("microcode", "Microcode"),
+        ("implementer", "ARM implementer"),
+        ("part", "ARM part"),
+        ("variant", "ARM variant"),
+        ("revision", "ARM revision"),
+        ("architecture", "Reported architecture"),
+    )
+    identities: Dict[Tuple[Tuple[str, str], ...], List[int]] = {}
+    features: Dict[Tuple[str, ...], List[int]] = {}
+    for item in logical:
+        number = integer_value(item.get("id"))
+        if number is None:
+            continue
+        identity = _mapping(item.get("identification"))
+        fields = tuple(
+            (label, text(identity.get(key))) for key, label in identity_fields if text(identity.get(key)) != UNKNOWN
+        )
+        if fields:
+            identities.setdefault(fields, []).append(number)
+        flags = tuple(str(flag) for flag in _items(identity.get("features")) if isinstance(flag, str) and flag)
+        if flags:
+            features.setdefault(flags, []).append(number)
+    if identities:
+        rows: Tuple[Tuple[str, ...], ...] = tuple(
+            (cpu_list(ids), label, value) for fields, ids in identities.items() for label, value in fields
+        )
+        tables.append(DetailTable("Identification", ("CPUs", "Field", "Value"), rows))
+    if detailed and features:
+        tables.append(
+            DetailTable(
+                "Kernel capabilities",
+                ("CPUs", "Features"),
+                tuple((cpu_list(ids), " ".join(flags)) for flags, ids in features.items()),
+            )
+        )
+    caches = _mappings(cpu.get("caches"))
+    if detailed and any(item.get("shared_cpus") for item in caches):
+        rows = tuple(
+            (
+                f"L{_integer(item.get('level'))}",
+                enum_text(CACHE_TYPES, item.get("type")),
+                text(item.get("cache_id")),
+                bytes_value(item.get("size")),
+                text(item.get("sets")),
+                cpu_list(item.get("shared_cpus")),
+            )
+            for item in caches
+        )
+        tables.append(DetailTable("Cache sharing", ("Level", "Type", "ID", "Size", "Sets", "CPUs"), rows))
+    policies = _mappings(cpu.get("frequency_policies"))
+    if policies:
+        rows = tuple(
+            (
+                str(item.get("index", "—")),
+                cpu_list(item.get("related_cpus")),
+                frequency(item.get("hardware_min_frequency")),
+                frequency(item.get("hardware_max_frequency")),
+                frequency(item.get("scaling_min_frequency")),
+                frequency(item.get("scaling_max_frequency")),
+                frequency(item.get("scaling_current_frequency")),
+                text(item.get("driver")),
+                text(item.get("governor")),
+            )
+            for item in _limited(policies, detailed, 4)
+        )
+        tables.append(
+            DetailTable(
+                "Frequency policies (kernel reports)",
+                ("Policy", "CPUs", "HW min", "HW max", "Policy min", "Policy max", "Reported", "Driver", "Governor"),
+                rows,
+                omitted=max(0, len(policies) - len(rows)),
+            )
+        )
+        if detailed:
+            rows = tuple(
+                (
+                    str(item.get("index", "—")),
+                    cpu_list(item.get("affected_cpus")),
+                    frequency(item.get("base_frequency")),
+                    frequency(item.get("hardware_current_frequency")),
+                    text(item.get("energy_performance_preference")),
+                )
+                for item in policies
+            )
+            tables.append(
+                DetailTable(
+                    "Frequency policy details",
+                    ("Policy", "Affected CPUs", "Base", "HW reported", "Energy preference"),
+                    rows,
+                )
+            )
+    if detailed and "online_cpu_ids" in cpu:
+        rows = tuple(
+            (
+                str(item.get("id", "—")),
+                str(item.get("package_id", "—")),
+                str(item.get("core_id", "—")),
+                text(item.get("numa_node")),
+                yes_no(item.get("online")),
+                yes_no(item.get("visible_to_current_process")),
+            )
+            for item in logical
+        )
+        tables.append(
+            DetailTable("Logical CPU topology", ("CPU", "Package", "Core", "NUMA", "Online", "Visible"), rows)
+        )
+    return tables
+
+
+def _cpu_card(
+    cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any], architecture: str
+) -> Card:
     packages = _mappings(cpu.get("packages"))
     cores = _mappings(cpu.get("cores"))
     logical = _mappings(cpu.get("logical_cpus"))
@@ -234,11 +352,43 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup:
         tables.append(DetailTable("Cache topology", ("Level", "Type", "Size", "Ways", "Line", "Instances"), cache_rows))
     if thermal_rows:
         tables.append(DetailTable("Thermals", ("Sensor", "Zone", "Temperature"), thermal_rows))
+    if show_tables and detailed:
+        tables.extend(_cpu_hardware_tables(cpu, logical, detailed))
+    hardware_rows: List[Tuple[str, str]] = []
+    if cpu.get("caches") and all(item.get("shared_cpus") for item in _mappings(cpu.get("caches"))):
+        hardware_rows.extend(
+            (f"L{level} {enum_text(CACHE_TYPES, kind).lower()} cache", f"{bytes_value(size)} · {count} instances")
+            for (level, kind, size, _ways, _line), count in sorted(cache_counts.items())
+        )
+    for key, label in (
+        ("family", "Family"),
+        ("model", "Model number"),
+        ("stepping", "Stepping"),
+        ("microcode", "Microcode"),
+    ):
+        values = sorted({text(_mapping(item.get("identification")).get(key)) for item in logical})
+        if values and values != [UNKNOWN]:
+            hardware_rows.append((label, " / ".join(values)))
+    if "online_cpu_ids" in cpu or "present_cpu_ids" in cpu:
+        online = str(len(_items(cpu["online_cpu_ids"]))) if "online_cpu_ids" in cpu else UNKNOWN
+        present = str(len(_items(cpu["present_cpu_ids"]))) if "present_cpu_ids" in cpu else UNKNOWN
+        hardware_rows.append(("CPU state", f"{online} online · {present} present"))
+    if "smt_active" in cpu or cpu.get("smt_control"):
+        active = cpu.get("smt_active")
+        state = "Active" if active is True else "Inactive" if active is False else UNKNOWN
+        hardware_rows.append(("SMT", f"{state} · control {text(cpu.get('smt_control'))}"))
+    if "boost_enabled" in cpu:
+        hardware_rows.append(("Boost enabled", yes_no(cpu.get("boost_enabled"))))
+    policies = _mappings(cpu.get("frequency_policies"))
+    drivers = sorted({str(item["driver"]) for item in policies if item.get("driver")})
+    if drivers:
+        hardware_rows.append(("Frequency driver", " / ".join(drivers)))
     return Card(
         "cpu",
         "CPU",
         (
             ("Model", " / ".join(model_names) or UNKNOWN),
+            ("Architecture", architecture),
             ("Topology", f"{len(packages)} packages · {len(cores)} cores · {len(logical)} logical"),
             ("Process visibility", f"{visible} of {len(logical)} logical CPUs"),
             ("CPU quota", _cpu_quota(cgroup)),
@@ -247,6 +397,7 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup:
             ("Governor", text(cpu.get("governor"))),
             ("ISA", isa),
             ("Temperature", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
+            *hardware_rows,
         ),
         tuple((tables if detailed else tables[:1]) if show_tables else ()),
     )
@@ -531,7 +682,13 @@ def build(
 
     builders: Dict[str, Callable[[], Card]] = {
         "system": lambda: _system_card(platform),
-        "cpu": lambda: _cpu_card(_mapping(info.get("cpu")), detailed, show_tables, cgroup),
+        "cpu": lambda: _cpu_card(
+            _mapping(info.get("cpu")),
+            detailed,
+            show_tables,
+            cgroup,
+            text(_mapping(platform.get("architecture")).get("name")),
+        ),
         "memory": lambda: _memory_card(_mapping(info.get("memory")), detailed, show_tables, cgroup),
         "accelerators": lambda: _accelerator_card(_mapping(info.get("accelerators")), show_tables),
         "network": lambda: _network_card(_mapping(info.get("network")), detailed),

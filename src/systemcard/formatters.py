@@ -2,7 +2,7 @@
 
 from typing import Dict, Optional
 
-from systemcard.schema import integer_value, mapping_value, number_value
+from systemcard.schema import integer_value, list_value, mapping_value, number_value
 
 UNKNOWN = "—"
 
@@ -100,3 +100,21 @@ def enum_text(mapping: Dict[int, str], value: Optional[object], fallback: str = 
         return mapping.get(int(value), fallback)
     except (TypeError, ValueError):
         return fallback
+
+
+def cpu_list(value: object) -> str:
+    """Compress explicit logical CPU IDs while preserving gaps."""
+    numbers = (integer_value(item) for item in list_value(value))
+    ids = sorted({number for number in numbers if number is not None and number >= 0})
+    if not ids:
+        return UNKNOWN
+    ranges = []
+    start = previous = ids[0]
+    for number in ids[1:]:
+        if number == previous + 1:
+            previous = number
+            continue
+        ranges.append(str(start) if start == previous else f"{start}-{previous}")
+        start = previous = number
+    ranges.append(str(start) if start == previous else f"{start}-{previous}")
+    return ",".join(ranges)

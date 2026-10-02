@@ -16,6 +16,8 @@
 ╭──────────────── CPU ─────────────────╮
 │ Model                                │
 │ Demo CPU                             │
+│ Architecture                         │
+│ x86_64                               │
 │ Topology                             │
 │ 1 packages · 2 cores · 4 logical     │
 │ Process visibility                   │
