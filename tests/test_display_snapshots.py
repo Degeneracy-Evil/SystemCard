@@ -14,7 +14,9 @@ from systemcard.render import render
 ROOT = Path(__file__).parent
 
 
-@pytest.mark.parametrize("case,width", [("default", 80), ("compact", 80), ("narrow", 40), ("missing", 80)])
+@pytest.mark.parametrize(
+    "case,width", [("default", 80), ("compact", 80), ("narrow", 40), ("missing", 80), ("wide", 120), ("ultrawide", 180)]
+)
 def test_display_snapshot(case: str, width: int) -> None:
     snapshot: dict[str, Any] = (
         {"info": {}} if case == "missing" else json.loads((ROOT / "fixtures/container-mig.json").read_text())

@@ -1,24 +1,22 @@
-╭────────────╮
-│ SystemCard │
-╰─ demo-node─╯
+──────────────────────────── SystemCard · demo-node ────────────────────────────
 ╭─────────────────────────────────── System ───────────────────────────────────╮
-│             Host demo-node                                                   │
+│ Host             demo-node                                                   │
 │ Operating system Demo Linux 1.0                                              │
-│           Kernel 5.15.0                                                      │
-│     Architecture x86_64 (64-bit, little-endian)                              │
-│         Hardware —                                                           │
-│         Firmware — · Legacy/unknown                                          │
+│ Kernel           5.15.0                                                      │
+│ Architecture     x86_64 (64-bit, little-endian)                              │
+│ Hardware         —                                                           │
+│ Firmware         — · Legacy/unknown                                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
-│              Model Demo CPU                                                  │
-│           Topology 1 packages · 2 cores · 4 logical                          │
+│ Model              Demo CPU                                                  │
+│ Topology           1 packages · 2 cores · 4 logical                          │
 │ Process visibility 2 of 4 logical CPUs                                       │
-│          CPU quota 1.5 CPUs                                                  │
-│               NUMA 1 nodes                                                   │
-│          Frequency base 2.40 GHz                                             │
-│           Governor —                                                         │
-│                ISA AVX AVX2                                                  │
-│        Temperature —                                                         │
+│ CPU quota          1.5 CPUs                                                  │
+│ NUMA               1 nodes                                                   │
+│ Frequency          base 2.40 GHz                                             │
+│ Governor           —                                                         │
+│ ISA                AVX AVX2                                                  │
+│ Temperature        —                                                         │
 │                                   Packages                                   │
 │ ┏━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━┓ │
 │ ┃ ID    ┃ Model          ┃ Cores     ┃ Threads      ┃ Base         ┃ Max   ┃ │
@@ -27,16 +25,16 @@
 │ └───────┴────────────────┴───────────┴──────────────┴──────────────┴───────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─────────────────────────────────── Memory ───────────────────────────────────╮
-│       Host total 64.0 GiB                                                    │
-│     Cgroup limit 16.0 GiB                                                    │
-│   Cgroup current 8.0 GiB                                                     │
+│ Host total       64.0 GiB                                                    │
+│ Cgroup limit     16.0 GiB                                                    │
+│ Cgroup current   8.0 GiB                                                     │
 │ Used / available 16.0 GiB / 48.0 GiB                                         │
-│       Technology DDR4                                                        │
+│ Technology       DDR4                                                        │
 │ Configured speed 3200 MT/s                                                   │
-│  DIMM population 0 of 0 slots                                                │
+│ DIMM population  0 of 0 slots                                                │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────── Accelerators ────────────────────────────────╮
-│            Summary 1 GPU · 1 MIG instances                                   │
+│ Summary            1 GPU · 1 MIG instances                                   │
 │ Process visibility 1 of 2 devices                                            │
 │                                   Devices                                    │
 │ ┏━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━┳━━━━━━━┳━━━━━━━━━┓ │
@@ -47,7 +45,7 @@
 │ └─────┴───────┴──────────────────────┴────────────┴──────┴───────┴─────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Network ───────────────────────────────────╮
-│         Interfaces 1 total · 1 up                                            │
+│ Interfaces         1 total · 1 up                                            │
 │ Process visibility 1 of 1 interfaces                                         │
 │                                  Interfaces                                  │
 │ ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓ │
@@ -57,7 +55,7 @@
 │ └────────────┴───────────────────────────┴───────────────────────┴─────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
-│      Devices 0 physical/mounted · 0 total                                    │
+│ Devices      0 physical/mounted · 0 total                                    │
 │ Raw capacity 0 B                                                             │
 │                                Block devices                                 │
 │ ┏━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━┓ │
@@ -66,14 +64,14 @@
 │ └───────────┴───────────┴───────────────────┴───────┴─────────────┴────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Software ──────────────────────────────────╮
-│       CUDA — · driver —                                                      │
-│  CUDA home —                                                                 │
-│       ROCm 6.2.0                                                             │
-│  ROCm home /opt/rocm                                                         │
+│ CUDA       — · driver —                                                      │
+│ CUDA home  —                                                                 │
+│ ROCm       6.2.0                                                             │
+│ ROCm home  /opt/rocm                                                         │
 │ Level Zero 1.17.0                                                            │
-│        MPI — —                                                               │
-│  RDMA core —                                                                 │
-│        UCX —                                                                 │
+│ MPI        — —                                                               │
+│ RDMA core  —                                                                 │
+│ UCX        —                                                                 │
 │                                  Toolchain                                   │
 │ ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓ │
 │ ┃ Kind              ┃ Name      ┃ Version         ┃ Path                   ┃ │
@@ -88,14 +86,14 @@
 │ └─────────────────────┴────────────┴──────────────────┴────────────────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Execution context ──────────────────────────────╮
-│           Process systemcard · PID 123 · PPID 1                              │
-│          Identity UID 1000 · GID 1000 · root No                              │
-│            Cgroup v2 · /demo                                                 │
-│         CPU quota 1.5 CPUs                                                   │
-│      Memory limit 16.0 GiB                                                   │
-│    Memory current 8.0 GiB                                                    │
-│           CPU set 0-1                                                        │
-│      Memory nodes 0                                                          │
+│ Process           systemcard · PID 123 · PPID 1                              │
+│ Identity          UID 1000 · GID 1000 · root No                              │
+│ Cgroup            v2 · /demo                                                 │
+│ CPU quota         1.5 CPUs                                                   │
+│ Memory limit      16.0 GiB                                                   │
+│ Memory current    8.0 GiB                                                    │
+│ CPU set           0-1                                                        │
+│ Memory nodes      0                                                          │
 │ Visible resources 2 CPUs · 1 accelerators                                    │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Warnings ──────────────────────────────────╮

@@ -1,24 +1,22 @@
-╭────────────╮
-│ SystemCard │
-╰──── — ─────╯
+──────────────────────────────── SystemCard · — ────────────────────────────────
 ╭─────────────────────────────────── System ───────────────────────────────────╮
-│             Host —                                                           │
+│ Host             —                                                           │
 │ Operating system —                                                           │
-│           Kernel —                                                           │
-│     Architecture —                                                           │
-│         Hardware —                                                           │
-│         Firmware — · Legacy/unknown                                          │
+│ Kernel           —                                                           │
+│ Architecture     —                                                           │
+│ Hardware         —                                                           │
+│ Firmware         — · Legacy/unknown                                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
-│              Model —                                                         │
-│           Topology 0 packages · 0 cores · 0 logical                          │
+│ Model              —                                                         │
+│ Topology           0 packages · 0 cores · 0 logical                          │
 │ Process visibility 0 of 0 logical CPUs                                       │
-│          CPU quota —                                                         │
-│               NUMA 0 nodes                                                   │
-│          Frequency —                                                         │
-│           Governor —                                                         │
-│                ISA —                                                         │
-│        Temperature —                                                         │
+│ CPU quota          —                                                         │
+│ NUMA               0 nodes                                                   │
+│ Frequency          —                                                         │
+│ Governor           —                                                         │
+│ ISA                —                                                         │
+│ Temperature        —                                                         │
 │                                   Packages                                   │
 │ ┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━┓ │
 │ ┃ ID     ┃ Model       ┃ Cores       ┃ Threads        ┃ Base      ┃ Max    ┃ │
@@ -26,20 +24,20 @@
 │ └────────┴─────────────┴─────────────┴────────────────┴───────────┴────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─────────────────────────────────── Memory ───────────────────────────────────╮
-│       Host total —                                                           │
-│     Cgroup limit —                                                           │
-│   Cgroup current —                                                           │
+│ Host total       —                                                           │
+│ Cgroup limit     —                                                           │
+│ Cgroup current   —                                                           │
 │ Used / available — / —                                                       │
-│       Technology —                                                           │
+│ Technology       —                                                           │
 │ Configured speed —                                                           │
-│  DIMM population 0 of 0 slots                                                │
+│ DIMM population  0 of 0 slots                                                │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────── Accelerators ────────────────────────────────╮
-│            Summary No accelerators detected                                  │
+│ Summary            No accelerators detected                                  │
 │ Process visibility 0 of 0 devices                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Network ───────────────────────────────────╮
-│         Interfaces 0 total · 0 up                                            │
+│ Interfaces         0 total · 0 up                                            │
 │ Process visibility 0 of 0 interfaces                                         │
 │                                  Interfaces                                  │
 │ ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓ │
@@ -48,7 +46,7 @@
 │ └────────────────┴───────────────┴────────────────────────────┴────────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
-│      Devices 0 physical/mounted · 0 total                                    │
+│ Devices      0 physical/mounted · 0 total                                    │
 │ Raw capacity 0 B                                                             │
 │                                Block devices                                 │
 │ ┏━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━┓ │
@@ -57,23 +55,23 @@
 │ └───────────┴───────────┴───────────────────┴───────┴─────────────┴────────┘ │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Software ──────────────────────────────────╮
-│       CUDA — · driver —                                                      │
-│  CUDA home —                                                                 │
-│       ROCm —                                                                 │
-│  ROCm home —                                                                 │
+│ CUDA       — · driver —                                                      │
+│ CUDA home  —                                                                 │
+│ ROCm       —                                                                 │
+│ ROCm home  —                                                                 │
 │ Level Zero —                                                                 │
-│        MPI — —                                                               │
-│  RDMA core —                                                                 │
-│        UCX —                                                                 │
+│ MPI        — —                                                               │
+│ RDMA core  —                                                                 │
+│ UCX        —                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Execution context ──────────────────────────────╮
-│           Process — · PID — · PPID —                                         │
-│          Identity UID — · GID — · root —                                     │
-│            Cgroup — · —                                                      │
-│         CPU quota —                                                          │
-│      Memory limit —                                                          │
-│    Memory current —                                                          │
-│           CPU set —                                                          │
-│      Memory nodes —                                                          │
+│ Process           — · PID — · PPID —                                         │
+│ Identity          UID — · GID — · root —                                     │
+│ Cgroup            — · —                                                      │
+│ CPU quota         —                                                          │
+│ Memory limit      —                                                          │
+│ Memory current    —                                                          │
+│ CPU set           —                                                          │
+│ Memory nodes      —                                                          │
 │ Visible resources 0 CPUs · 0 accelerators                                    │
 ╰──────────────────────────────────────────────────────────────────────────────╯
