@@ -1,9 +1,11 @@
 """Rich terminal rendering for SystemCard display models."""
 
-from typing import List, Sequence, Union
+from typing import List, Sequence, Tuple, Union
 
-from rich.console import Console, Group
+from rich.cells import cell_len
+from rich.console import Console, ConsoleRenderable, Group
 from rich.panel import Panel
+from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
 
@@ -15,36 +17,62 @@ COLUMN_GAP = 2
 MAX_COLUMNS = 3
 
 
-def _summary(card: Card) -> Table:
-    accent = section_style(card.section)
-    summary = Table.grid(padding=(0, 1), expand=True)
-    summary.add_column(style=accent, no_wrap=True)
-    summary.add_column(ratio=1, overflow="fold")
-    for label, value in card.rows:
-        summary.add_row(Text(label, style=f"bold {accent}"), value_text(label, value))
-    return summary
+def _fields(rows: Sequence[Tuple[str, Text]], accent: str, width: int) -> Table:
+    """Keep labels readable and give values room before choosing two columns."""
+    label_width = max((cell_len(label) for label, _ in rows), default=0)
+    stacked = width - 4 - label_width - 1 < 24
+    fields = Table.grid(padding=(0, 1), expand=True)
+    fields.add_column(overflow="fold")
+    if not stacked:
+        fields.add_column(ratio=1, overflow="fold")
+    for label, value in rows:
+        heading = Text(label, style=f"bold {accent}")
+        if stacked:
+            fields.add_row(heading)
+            fields.add_row(value)
+        else:
+            fields.add_row(heading, value)
+    return fields
 
 
-def _details(card: Card) -> List[Table]:
+def _summary(card: Card, width: int) -> Table:
+    return _fields(
+        [(label, value_text(label, value)) for label, value in card.rows], section_style(card.section), width
+    )
+
+
+def _details(card: Card, width: int) -> List[ConsoleRenderable]:
     accent = section_style(card.section)
-    details: List[Table] = []
+    details: List[ConsoleRenderable] = []
     for detail in card.tables:
-        table = Table(
-            title=Text(detail.title, style=f"bold {accent}"),
-            header_style=f"bold {accent}",
-            border_style=accent,
-            expand=True,
-        )
-        for column in detail.columns:
-            table.add_column(column, overflow="fold")
         for row in detail.rows:
             if len(detail.columns) != len(row):
                 raise ValueError("Detail row does not match table columns")
-            table.add_row(*(cell_text(column, value) for column, value in zip(detail.columns, row)))
+        column_widths = [
+            max(cell_len(column), min(max((cell_len(row[index]) for row in detail.rows), default=0), 24), 8)
+            for index, column in enumerate(detail.columns)
+        ]
+        if sum(column_widths) + 3 * len(detail.columns) + 1 > width - 4 and detail.rows:
+            for index, row in enumerate(detail.rows, start=1):
+                fields = _fields(
+                    [(column, cell_text(column, value)) for column, value in zip(detail.columns, row)], accent, width
+                )
+                fields.title = Text(f"{detail.title} · {index}", style=f"bold {accent}")
+                details.append(fields)
+        else:
+            table = Table(
+                title=Text(detail.title, style=f"bold {accent}"),
+                header_style=f"bold {accent}",
+                border_style=accent,
+                expand=True,
+            )
+            for column, minimum in zip(detail.columns, column_widths):
+                table.add_column(column, overflow="fold", min_width=minimum if detail.rows else None)
+            for row in detail.rows:
+                table.add_row(*(cell_text(column, value) for column, value in zip(detail.columns, row)))
+            details.append(table)
         if detail.omitted:
-            table.caption = f"… {detail.omitted} more; use --section {card.section} for all"
-            table.caption_style = "dim"
-        details.append(table)
+            details.append(Text(f"… {detail.omitted} more; use --section {card.section} for all", style="dim"))
     return details
 
 
@@ -53,11 +81,11 @@ def _panel(card: Card, content: Group) -> Panel:
     return Panel(content, title=Text(card.title, style=f"bold {accent}"), border_style=accent, expand=True)
 
 
-def _summary_row(cards: Sequence[Card], columns: int, console: Console) -> None:
+def _summary_row(cards: Sequence[Card], columns: int, console: Console, width: int) -> Table:
     """Use fixed column widths and measured heights to align every border."""
-    available = console.width - COLUMN_GAP * (columns - 1)
+    available = width - COLUMN_GAP * (columns - 1)
     widths = [available // columns + (index < available % columns) for index in range(columns)]
-    panels = [_panel(card, Group(_summary(card))) for card in cards]
+    panels = [_panel(card, Group(_summary(card, column_width))) for card, column_width in zip(cards, widths)]
     for panel, width in zip(panels, widths):
         panel.width = width
     height = max(
@@ -76,29 +104,30 @@ def _summary_row(cards: Sequence[Card], columns: int, console: Console) -> None:
         panel.height = height
         values.append(panel)
     row.add_row(*values)
-    console.print(row)
+    return row
 
 
 def render(model: DisplayModel, console: Console) -> None:
     """Show a responsive summary grid, keeping detailed tables at full width."""
+    width = console.width
+    content: List[ConsoleRenderable] = []
     heading = Text(model.title, style="bold bright_cyan")
     if model.subtitle:
         heading.append(" · ", style="dim blue")
         heading.append(model.subtitle, style="blue")
-    console.rule(heading, style="bright_blue")
-    columns = min(MAX_COLUMNS, (console.width + COLUMN_GAP) // (CARD_MIN_WIDTH + COLUMN_GAP), len(model.cards))
+    content.append(Rule(heading, style="bright_blue"))
+    columns = min(MAX_COLUMNS, (width + COLUMN_GAP) // (CARD_MIN_WIDTH + COLUMN_GAP), len(model.cards))
     if columns > 1:
-        for start in range(0, len(model.cards), columns):
-            _summary_row(model.cards[start : start + columns], columns, console)
-        for card in model.cards:
-            if card.tables:
-                console.print(_panel(card, Group(*_details(card))))
+        content.extend(
+            _summary_row(model.cards[start : start + columns], columns, console, width)
+            for start in range(0, len(model.cards), columns)
+        )
+        content.extend(_panel(card, Group(*_details(card, width))) for card in model.cards if card.tables)
     else:
-        for card in model.cards:
-            console.print(_panel(card, Group(_summary(card), *_details(card))))
+        content.extend(_panel(card, Group(_summary(card, width), *_details(card, width))) for card in model.cards)
 
     if model.warnings:
-        console.print(
+        content.append(
             Panel(
                 Text("\n".join(model.warnings), style="yellow"),
                 title=Text("Warnings", style="bold yellow"),
@@ -106,4 +135,5 @@ def render(model: DisplayModel, console: Console) -> None:
             )
         )
     if model.footer:
-        console.print(Text(model.footer, style="dim blue", justify="right"))
+        content.append(Text(model.footer, style="dim blue", justify="right"))
+    console.print(Group(*content), width=width)

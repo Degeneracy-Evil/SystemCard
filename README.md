@@ -66,7 +66,11 @@ SYSTEMCARD_SPEC=/path/to/systemcard.whl bash run.sh --compact
 The display adapts to terminal width: one column below 110 characters, two columns
 from 110, and three from 166. On wider terminals, summary cards share aligned rows
 and detailed device tables follow at full width. `--compact` shows only the summary
-cards unless explicit sections are requested.
+cards unless explicit sections are requested. Tables switch to individual records
+when their columns would be cramped, and narrow summaries put labels above values.
+Each invocation uses the current terminal width. After the command exits, resizing
+the terminal may reflow its scrollback; run the command again to lay it out at the
+new width.
 
 Sections are validated before collection and collect only their domains plus required
 identity, visibility and NUMA dependencies. CPU and memory cards show cgroup limits

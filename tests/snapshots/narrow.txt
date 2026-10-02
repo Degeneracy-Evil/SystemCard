@@ -1,88 +1,99 @@
 ──────── SystemCard · demo-node ────────
 ╭─────────────── System ───────────────╮
-│ Host             demo-node           │
-│ Operating system Demo Linux 1.0      │
-│ Kernel           5.15.0              │
-│ Architecture     x86_64 (64-bit,     │
-│                  little-endian)      │
-│ Hardware         —                   │
-│ Firmware         — · Legacy/unknown  │
+│ Host                                 │
+│ demo-node                            │
+│ Operating system                     │
+│ Demo Linux 1.0                       │
+│ Kernel                               │
+│ 5.15.0                               │
+│ Architecture                         │
+│ x86_64 (64-bit, little-endian)       │
+│ Hardware                             │
+│ —                                    │
+│ Firmware                             │
+│ — · Legacy/unknown                   │
 ╰──────────────────────────────────────╯
 ╭──────────────── CPU ─────────────────╮
-│ Model              Demo CPU          │
-│ Topology           1 packages · 2    │
-│                    cores · 4 logical │
-│ Process visibility 2 of 4 logical    │
-│                    CPUs              │
-│ CPU quota          1.5 CPUs          │
-│ NUMA               1 nodes           │
-│ Frequency          base 2.40 GHz     │
-│ Governor           —                 │
-│ ISA                AVX AVX2          │
-│ Temperature        —                 │
-│               Packages               │
-│ ┏━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┓ │
-│ ┃    ┃     ┃     ┃ Thr ┃     ┃     ┃ │
-│ ┃    ┃ Mod ┃ Cor ┃ ead ┃ Bas ┃     ┃ │
-│ ┃ ID ┃ el  ┃ es  ┃ s   ┃ e   ┃ Max ┃ │
-│ ┡━━━━╇━━━━━╇━━━━━╇━━━━━╇━━━━━╇━━━━━┩ │
-│ │ 0  │ Dem │ 0   │ 0   │ 2.4 │ —   │ │
-│ │    │ o   │     │     │ 0   │     │ │
-│ │    │ CPU │     │     │ GHz │     │ │
-│ └────┴─────┴─────┴─────┴─────┴─────┘ │
+│ Model                                │
+│ Demo CPU                             │
+│ Topology                             │
+│ 1 packages · 2 cores · 4 logical     │
+│ Process visibility                   │
+│ 2 of 4 logical CPUs                  │
+│ CPU quota                            │
+│ 1.5 CPUs                             │
+│ NUMA                                 │
+│ 1 nodes                              │
+│ Frequency                            │
+│ base 2.40 GHz                        │
+│ Governor                             │
+│ —                                    │
+│ ISA                                  │
+│ AVX AVX2                             │
+│ Temperature                          │
+│ —                                    │
+│             Packages · 1             │
+│ ID      0                            │
+│ Model   Demo CPU                     │
+│ Cores   0                            │
+│ Threads 0                            │
+│ Base    2.40 GHz                     │
+│ Max     —                            │
 ╰──────────────────────────────────────╯
 ╭─────────────── Memory ───────────────╮
-│ Host total       64.0 GiB            │
-│ Cgroup limit     16.0 GiB            │
-│ Cgroup current   8.0 GiB             │
-│ Used / available 16.0 GiB / 48.0 GiB │
-│ Technology       DDR4                │
-│ Configured speed 3200 MT/s           │
-│ DIMM population  0 of 0 slots        │
+│ Host total                           │
+│ 64.0 GiB                             │
+│ Cgroup limit                         │
+│ 16.0 GiB                             │
+│ Cgroup current                       │
+│ 8.0 GiB                              │
+│ Used / available                     │
+│ 16.0 GiB / 48.0 GiB                  │
+│ Technology                           │
+│ DDR4                                 │
+│ Configured speed                     │
+│ 3200 MT/s                            │
+│ DIMM population                      │
+│ 0 of 0 slots                         │
 ╰──────────────────────────────────────╯
 ╭──────────── Accelerators ────────────╮
-│ Summary            1 GPU · 1 MIG     │
-│                    instances         │
-│ Process visibility 1 of 2 devices    │
-│               Devices                │
-│ ┏━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┳━━━━┓ │
-│ ┃    ┃    ┃    ┃    ┃    ┃    ┃ Vi ┃ │
-│ ┃    ┃    ┃    ┃ Me ┃    ┃    ┃ si ┃ │
-│ ┃    ┃ Ki ┃ Na ┃ mo ┃ PC ┃ NU ┃ bl ┃ │
-│ ┃ ID ┃ nd ┃ me ┃ ry ┃ I  ┃ MA ┃ e  ┃ │
-│ ┡━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━╇━━━━┩ │
-│ │ 0  │ GP │ De │ 80 │ —  │ —  │ No │ │
-│ │    │ U  │ mo │ .0 │    │    │    │ │
-│ │    │    │    │    │    │    │    │ │
-│ │    │    │ GP │ Gi │    │    │    │ │
-│ │    │    │ U  │ B  │    │    │    │ │
-│ │ 1  │ GP │ De │ 20 │ —  │ —  │ Ye │ │
-│ │    │ U  │ mo │ .0 │    │    │ s  │ │
-│ │    │    │    │    │    │    │    │ │
-│ │    │    │ MI │ Gi │    │    │    │ │
-│ │    │    │ G  │ B  │    │    │    │ │
-│ │    │    │ 2g │    │    │    │    │ │
-│ │    │    │ (M │    │    │    │    │ │
-│ │    │    │ IG │    │    │    │    │ │
-│ │    │    │ )  │    │    │    │    │ │
-│ └────┴────┴────┴────┴────┴────┴────┘ │
+│ Summary                              │
+│ 1 GPU · 1 MIG instances              │
+│ Process visibility                   │
+│ 1 of 2 devices                       │
+│             Devices · 1              │
+│ ID      0                            │
+│ Kind    GPU                          │
+│ Name    Demo GPU                     │
+│ Memory  80.0 GiB                     │
+│ PCI     —                            │
+│ NUMA    —                            │
+│ Visible No                           │
+│             Devices · 2              │
+│ ID      1                            │
+│ Kind    GPU                          │
+│ Name    Demo MIG 2g (MIG)            │
+│ Memory  20.0 GiB                     │
+│ PCI     —                            │
+│ NUMA    —                            │
+│ Visible Yes                          │
 ╰──────────────────────────────────────╯
 ╭────────────── Network ───────────────╮
-│ Interfaces         1 total · 1 up    │
-│ Process visibility 1 of 1 interfaces │
-│              Interfaces              │
-│ ┏━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━┓ │
-│ ┃      ┃          ┃ Addresse ┃     ┃ │
-│ ┃ Name ┃ Link     ┃ s        ┃ PCI ┃ │
-│ ┡━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━╇━━━━━┩ │
-│ │ eth0 │ UP · 10  │ 192.0.2. │ —   │ │
-│ │      │ Gbps     │ 10       │     │ │
-│ └──────┴──────────┴──────────┴─────┘ │
+│ Interfaces                           │
+│ 1 total · 1 up                       │
+│ Process visibility                   │
+│ 1 of 1 interfaces                    │
+│            Interfaces · 1            │
+│ Name      eth0                       │
+│ Link      UP · 10 Gbps               │
+│ Addresses 192.0.2.10                 │
+│ PCI       —                          │
 ╰──────────────────────────────────────╯
 ╭────────────── Storage ───────────────╮
-│ Devices      0 physical/mounted · 0  │
-│              total                   │
-│ Raw capacity 0 B                     │
+│ Devices                              │
+│ 0 physical/mounted · 0 total         │
+│ Raw capacity                         │
+│ 0 B                                  │
 │            Block devices             │
 │ ┏━━━━━┳━━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━━┓ │
 │ ┃     ┃     ┃ Cap ┃    ┃     ┃     ┃ │
@@ -100,37 +111,39 @@
 │ MPI        — —                       │
 │ RDMA core  —                         │
 │ UCX        —                         │
-│              Toolchain               │
-│ ┏━━━━━━━━┳━━━━━━┳━━━━━━━━━┳━━━━━━━━┓ │
-│ ┃ Kind   ┃ Name ┃ Version ┃ Path   ┃ │
-│ ┡━━━━━━━━╇━━━━━━╇━━━━━━━━━╇━━━━━━━━┩ │
-│ │ Compil │ gcc  │ 11.2.0  │ /usr/b │ │
-│ │ er     │      │         │ in/gcc │ │
-│ └────────┴──────┴─────────┴────────┘ │
-│              Libraries               │
-│ ┏━━━━━━━━┳━━━━━━┳━━━━━━━━━┳━━━━━━━━┓ │
-│ ┃ Name   ┃ Kind ┃ Version ┃ Path   ┃ │
-│ ┡━━━━━━━━╇━━━━━━╇━━━━━━━━━╇━━━━━━━━┩ │
-│ │ openbl │ BLAS │ 0.3.26  │ /usr/l │ │
-│ │ as     │      │         │ ib     │ │
-│ └────────┴──────┴─────────┴────────┘ │
+│            Toolchain · 1             │
+│ Kind    Compiler                     │
+│ Name    gcc                          │
+│ Version 11.2.0                       │
+│ Path    /usr/bin/gcc                 │
+│            Libraries · 1             │
+│ Name    openblas                     │
+│ Kind    BLAS                         │
+│ Version 0.3.26                       │
+│ Path    /usr/lib                     │
 ╰──────────────────────────────────────╯
 ╭───────── Execution context ──────────╮
-│ Process           systemcard · PID   │
-│                   123 · PPID 1       │
-│ Identity          UID 1000 · GID     │
-│                   1000 · root No     │
-│ Cgroup            v2 · /demo         │
-│ CPU quota         1.5 CPUs           │
-│ Memory limit      16.0 GiB           │
-│ Memory current    8.0 GiB            │
-│ CPU set           0-1                │
-│ Memory nodes      0                  │
-│ Visible resources 2 CPUs · 1         │
-│                   accelerators       │
+│ Process                              │
+│ systemcard · PID 123 · PPID 1        │
+│ Identity                             │
+│ UID 1000 · GID 1000 · root No        │
+│ Cgroup                               │
+│ v2 · /demo                           │
+│ CPU quota                            │
+│ 1.5 CPUs                             │
+│ Memory limit                         │
+│ 16.0 GiB                             │
+│ Memory current                       │
+│ 8.0 GiB                              │
+│ CPU set                              │
+│ 0-1                                  │
+│ Memory nodes                         │
+│ 0                                    │
+│ Visible resources                    │
+│ 2 CPUs · 1 accelerators              │
 ╰──────────────────────────────────────╯
 ╭────────────── Warnings ──────────────╮
 │ demo: optional DIMM details          │
 │ unavailable                          │
 ╰──────────────────────────────────────╯
-Sysal 0.0.9
+                             Sysal 0.0.9
