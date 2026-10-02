@@ -73,17 +73,25 @@ def _display(args: argparse.Namespace, console: Console) -> int:
         console.print(" ".join(SECTIONS))
         return 0
 
-    try:
-        snapshot = collect()
-    except CollectionError as error:
-        console.print(f"[red]SystemCard collection failed:[/] {error}")
-        return 1
-
     sections, unknown = _requested_sections(args.section)
+    if args.section is not None and not sections and not unknown:
+        console.print("[red]No section names given.[/] Try --list-sections.")
+        return 2
     if unknown:
         console.print(f"[red]Unknown section(s):[/] {', '.join(unknown)}")
         console.print(f"Available: {' '.join(SECTIONS)}. Try --list-sections.")
         return 2
+
+    try:
+        requested = (
+            sections
+            if sections is not None
+            else (["system", "cpu", "memory", "accelerators"] if args.compact else None)
+        )
+        snapshot = collect(sections=requested)
+    except CollectionError as error:
+        console.print(f"[red]SystemCard collection failed:[/] {error}")
+        return 1
 
     render(build(snapshot=normalize_snapshot(snapshot), compact=args.compact, sections=sections), console)
     return 0

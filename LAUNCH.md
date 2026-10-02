@@ -1,26 +1,37 @@
-# 启动方式
+# 安装与临时启动
 
-这里介绍启动方式。
+首次 PyPI 发布仍等待账号配置。当前可从 GitHub Wheels / Release 工作流下载
+匹配解释器和平台的 wheel，再安装或交给启动脚本运行。
 
-1. 提供shell使用脚本（这个只是过渡使用，或者追求新版本和测试）
-由于项目需要做成多文件结构，故为了方便用户使用，提供一个 Bootstrap 脚本，例如：
-curl -fsSL https://raw.githubusercontent.com/you/SystemCard/main/run.sh | bash
+```bash
+python3 -m pip install /path/to/systemcard.whl
+systemcard --compact
+SYSTEMCARD_SPEC=/path/to/systemcard.whl bash run.sh --section cpu,memory --no-color
+```
 
-逻辑如下：
-如果有 uv:
-  uvx --from git+https://github.com/you/SystemCard.git SystemCard
+run.sh 优先 uvx，再 pipx，最后创建临时 venv；退出时清理临时 venv，
+透传 CLI 参数和退出码。venv 路径要求 Python 3.6.8+；CentOS 7 自动升级 pip 至21.3.1，
+Python 3.7 使用 pip<24.1，其余解释器使用当前 pip。
 
-否则如果有 pipx:
-  pipx run --spec git+https://github.com/you/SystemCard.git SystemCard
+| 环境变量 | 用法 |
+| --- | --- |
+| SYSTEMCARD_SPEC | 本地 wheel、包规格、URL 或 git+https 包；默认 systemcard |
+| SYSTEMCARD_VERSION | 指定 PyPI 版本，与 SPEC 互斥 |
+| SYSTEMCARD_RUNNER | auto（默认）、uvx、pipx 或 venv；可显式验证旧解释器 |
 
-否则如果有 python3 + pip:
-  创建临时 venv
-  pip install git+https://github.com/you/SystemCard.git
-  运行 SystemCard
-  退出后删除临时 venv
+例如在 PyPI 发布后：
 
-否则:
-  提示需要 python3
+```bash
+pipx install systemcard
+SYSTEMCARD_VERSION=0.1.0 bash run.sh --compact
+```
 
-2. 发布到pypi（主要使用这个方案）
-发布到pypi，用pip或pipx直接使用
+也可以下载项目脚本后检查并运行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Degeneracy-Evil/SystemCard/main/run.sh -o run.sh
+bash run.sh --compact
+```
+
+直接从 Git 安装需要 C++20 编译器、CMake 和构建依赖，已有兼容 wheel 的使用者
+无需这些工具。发布流程见 [docs/releasing.md](docs/releasing.md)。

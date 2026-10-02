@@ -135,7 +135,20 @@ def _system_card(platform: Mapping[str, Any]) -> Card:
     )
 
 
-def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card:
+def _cpu_quota(cgroup: Mapping[str, Any]) -> str:
+    quota, period = cgroup.get("cpu_quota_us"), cgroup.get("cpu_period_us")
+    if isinstance(quota, int) and isinstance(period, int) and period > 0:
+        return f"{quota / period:g} CPUs"
+    return "Unlimited" if cgroup.get("cpu_limit_known") is True else UNKNOWN
+
+
+def _memory_limit(cgroup: Mapping[str, Any]) -> str:
+    if isinstance(cgroup.get("memory_limit"), int):
+        return bytes_value(cgroup["memory_limit"])
+    return "Unlimited" if cgroup.get("memory_limit_known") is True else UNKNOWN
+
+
+def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any]) -> Card:
     packages = _mappings(cpu.get("packages"))
     cores = _mappings(cpu.get("cores"))
     logical = _mappings(cpu.get("logical_cpus"))
@@ -218,6 +231,7 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card
             ("Model", " / ".join(model_names) or UNKNOWN),
             ("Topology", f"{len(packages)} packages · {len(cores)} cores · {len(logical)} logical"),
             ("Process visibility", f"{visible} of {len(logical)} logical CPUs"),
+            ("CPU quota", _cpu_quota(cgroup)),
             ("NUMA", f"{len(numa_nodes)} nodes"),
             ("Frequency", frequency_range),
             ("Governor", text(cpu.get("governor"))),
@@ -228,7 +242,7 @@ def _cpu_card(cpu: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card
     )
 
 
-def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool) -> Card:
+def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, cgroup: Mapping[str, Any]) -> Card:
     total = memory.get("total_memory")
     available = memory.get("available_memory")
     used = total - available if isinstance(total, (int, float)) and isinstance(available, (int, float)) else None
@@ -260,7 +274,9 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool) -
         "memory",
         "Memory",
         (
-            ("Total", bytes_value(total)),
+            ("Host total", bytes_value(total)),
+            ("Cgroup limit", _memory_limit(cgroup)),
+            ("Cgroup current", bytes_value(cgroup.get("memory_current"))),
             ("Used / available", f"{bytes_value(used)} / {bytes_value(available)}"),
             ("Technology", text(memory.get("memory_type"))),
             (
@@ -281,13 +297,16 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool) -
 def _accelerator_card(accelerators: Mapping[str, Any], show_tables: bool) -> Card:
     devices = _mappings(accelerators.get("devices"))
     visible = sum(item.get("visible_to_current_process") is True for item in devices)
-    kinds = Counter(enum_text(ACCELERATOR_KINDS, item.get("kind")) for item in devices)
+    physical = [item for item in devices if not item.get("parent_uuid")]
+    kinds = Counter(enum_text(ACCELERATOR_KINDS, item.get("kind")) for item in physical)
     breakdown = " · ".join(f"{count} {kind}" for kind, count in kinds.items()) or "No accelerators detected"
+    if len(physical) < len(devices):
+        breakdown += f" · {len(devices) - len(physical)} MIG instances"
     rows = tuple(
         (
             str(item.get("id", index)),
             enum_text(ACCELERATOR_KINDS, item.get("kind")),
-            text(item.get("name")),
+            text(item.get("name")) + (" (MIG)" if item.get("parent_uuid") else ""),
             bytes_value(item.get("memory_size")),
             pci_address(item.get("pci_address")),
             text(item.get("nearest_numa_node")),
@@ -401,6 +420,9 @@ def _software_card(software: Mapping[str, Any]) -> Card:
     runtimes = _mappings(software.get("runtimes"))
     compilers = _mappings(software.get("compilers"))
     cuda = _mapping(software.get("cuda"))
+    rocm = _mapping(software.get("rocm"))
+    level_zero = _mapping(software.get("level_zero"))
+    libraries = _mappings(software.get("libraries"))
     mpi = _mapping(software.get("mpi"))
     rdma = _mapping(software.get("rdma"))
     tool_rows = tuple(
@@ -416,12 +438,26 @@ def _software_card(software: Mapping[str, Any]) -> Card:
         tables.append(DetailTable("Toolchain", ("Kind", "Name", "Version", "Path"), tool_rows))
     if driver_rows:
         tables.append(DetailTable("Drivers", ("Name", "Version", "Loaded"), driver_rows))
+    if libraries:
+        tables.append(
+            DetailTable(
+                "Libraries",
+                ("Name", "Kind", "Version", "Path"),
+                tuple(
+                    (text(item.get("name")), text(item.get("kind")), text(item.get("version")), text(item.get("path")))
+                    for item in libraries
+                ),
+            )
+        )
     return Card(
         "software",
         "Software",
         (
             ("CUDA", f"{text(cuda.get('version'))} · driver {text(cuda.get('driver_version'))}"),
             ("CUDA home", text(cuda.get("home"))),
+            ("ROCm", text(rocm.get("version"))),
+            ("ROCm home", text(rocm.get("rocm_path"))),
+            ("Level Zero", text(level_zero.get("version"))),
             ("MPI", f"{text(mpi.get('implementation'))} {text(mpi.get('version'))}"),
             ("RDMA core", text(rdma.get("rdma_core_version"))),
             ("UCX", text(rdma.get("ucx_version"))),
@@ -449,6 +485,9 @@ def _execution_card(execution: Mapping[str, Any], visible_cpu_count: int, visibl
                 f"UID {text(process.get('uid'))} · GID {text(process.get('gid'))} · root {yes_no(permission.get('is_root'))}",
             ),
             ("Cgroup", f"{cgroup_version} · {text(cgroup.get('path'))}"),
+            ("CPU quota", _cpu_quota(cgroup)),
+            ("Memory limit", _memory_limit(cgroup)),
+            ("Memory current", bytes_value(cgroup.get("memory_current"))),
             ("CPU set", text(cpuset.get("cpus_effective"))),
             ("Memory nodes", text(cpuset.get("mems_effective"))),
             ("Visible resources", f"{visible_cpu_count} CPUs · {visible_accelerator_count} accelerators"),
@@ -467,6 +506,7 @@ def build(
     hostname = text(_mapping(platform.get("host")).get("hostname"))
     detailed = sections is not None
     show_tables = not compact or sections is not None
+    cgroup = _mapping(_mapping(info.get("execution")).get("cgroup"))
     cpu = _mapping(info.get("cpu"))
     accelerators = _mapping(info.get("accelerators"))
     visible_cpu_count = sum(
@@ -477,8 +517,8 @@ def build(
     )
     cards = [
         _system_card(platform),
-        _cpu_card(cpu, detailed, show_tables),
-        _memory_card(_mapping(info.get("memory")), detailed, show_tables),
+        _cpu_card(cpu, detailed, show_tables, cgroup),
+        _memory_card(_mapping(info.get("memory")), detailed, show_tables, cgroup),
         _accelerator_card(accelerators, show_tables),
     ]
     if not compact or sections:

@@ -58,3 +58,13 @@ systemcard
 
 PyPI release filenames cannot be reused. Later releases must use a new version
 and matching tag; do not retag an already published release.
+
+## 更新 Sysal 依赖
+
+先在 Sysal 仓库生成 CentOS 7/GCC 兼容 GitHub Release，下载其正式 tar.gz 并计算 SHA-256。
+同步更新 CMakeLists.txt 的 SYSAL_VERSION、SYSAL_PACKAGE_URL 默认值与 SYSAL_PACKAGE_SHA256，
+不要使用另一次本地打包的摘要替代正式资产摘要。删除旧 build 目录，再重新安装开发包，
+确认实际采集的 meta.sysal_version 与固定版本一致。SystemCard 不重新编译 Sysal。
+
+本轮 bootstrap 已验证 uvx 的 Python 3.12 wheel 路径和 CentOS 7/Python 3.6.8 临时 venv 路径。
+后者在真实 --cpus=1.5、--memory=512m 的容器中显示配额，运行环境无需编译器或开发头文件。

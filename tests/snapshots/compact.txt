@@ -1,0 +1,39 @@
+╭────────────╮
+│ SystemCard │
+╰─ demo-node─╯
+╭─────────────────────────────────── System ───────────────────────────────────╮
+│             Host demo-node                                                   │
+│ Operating system Demo Linux 1.0                                              │
+│           Kernel 5.15.0                                                      │
+│     Architecture x86_64 (64-bit, little-endian)                              │
+│         Hardware —                                                           │
+│         Firmware — · Legacy/unknown                                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭──────────────────────────────────── CPU ─────────────────────────────────────╮
+│              Model Demo CPU                                                  │
+│           Topology 1 packages · 2 cores · 4 logical                          │
+│ Process visibility 2 of 4 logical CPUs                                       │
+│          CPU quota 1.5 CPUs                                                  │
+│               NUMA 1 nodes                                                   │
+│          Frequency base 2.40 GHz                                             │
+│           Governor —                                                         │
+│                ISA AVX AVX2                                                  │
+│        Temperature —                                                         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────────── Memory ───────────────────────────────────╮
+│       Host total 64.0 GiB                                                    │
+│     Cgroup limit 16.0 GiB                                                    │
+│   Cgroup current 8.0 GiB                                                     │
+│ Used / available 16.0 GiB / 48.0 GiB                                         │
+│       Technology DDR4                                                        │
+│ Configured speed 3200 MT/s                                                   │
+│  DIMM population 0 of 0 slots                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭──────────────────────────────── Accelerators ────────────────────────────────╮
+│            Summary 1 GPU · 1 MIG instances                                   │
+│ Process visibility 1 of 2 devices                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭────────────────────────────────── Warnings ──────────────────────────────────╮
+│ demo: optional DIMM details unavailable                                      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+Sysal 0.0.9

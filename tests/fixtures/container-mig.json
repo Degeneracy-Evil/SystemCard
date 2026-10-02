@@ -1,0 +1,169 @@
+{
+  "info": {
+    "platform": {
+      "host": {
+        "hostname": "demo-node"
+      },
+      "os": {
+        "name": "Demo Linux",
+        "version": "1.0"
+      },
+      "kernel": {
+        "release": "5.15.0"
+      },
+      "architecture": {
+        "name": "x86_64",
+        "bits": 64,
+        "byte_order": "little"
+      }
+    },
+    "cpu": {
+      "packages": [
+        {
+          "id": 0,
+          "model_name": "Demo CPU",
+          "core_count": 2,
+          "thread_count": 4,
+          "base_frequency": 2400000000
+        }
+      ],
+      "cores": [
+        {
+          "id": 0
+        },
+        {
+          "id": 1
+        }
+      ],
+      "logical_cpus": [
+        {
+          "id": 0,
+          "visible_to_current_process": true
+        },
+        {
+          "id": 1,
+          "visible_to_current_process": true
+        },
+        {
+          "id": 2,
+          "visible_to_current_process": false
+        },
+        {
+          "id": 3,
+          "visible_to_current_process": false
+        }
+      ],
+      "numa_nodes": [
+        {
+          "id": 0
+        }
+      ],
+      "isa_extensions": [
+        6,
+        7
+      ]
+    },
+    "memory": {
+      "total_memory": 68719476736,
+      "available_memory": 51539607552,
+      "memory_type": "DDR4",
+      "configured_speed_mts": 3200
+    },
+    "accelerators": {
+      "devices": [
+        {
+          "id": 0,
+          "kind": 0,
+          "vendor": "NVIDIA",
+          "name": "Demo GPU",
+          "uuid": "GPU-00000000-0000-0000-0000-000000000001",
+          "memory_size": 85899345920,
+          "visible_to_current_process": false
+        },
+        {
+          "id": 1,
+          "kind": 0,
+          "vendor": "NVIDIA",
+          "name": "Demo MIG 2g",
+          "uuid": "MIG-00000000-0000-0000-0000-000000000002",
+          "parent_uuid": "GPU-00000000-0000-0000-0000-000000000001",
+          "memory_size": 21474836480,
+          "visible_to_current_process": true
+        }
+      ]
+    },
+    "network": {
+      "interfaces": [
+        {
+          "name": "eth0",
+          "state": 0,
+          "speed": 10000000000,
+          "addresses": [
+            "192.0.2.10"
+          ],
+          "visible_to_current_process": true
+        }
+      ]
+    },
+    "storage": {
+      "devices": []
+    },
+    "software": {
+      "compilers": [
+        {
+          "name": "gcc",
+          "version": "11.2.0",
+          "path": "/usr/bin/gcc"
+        }
+      ],
+      "rocm": {
+        "version": "6.2.0",
+        "rocm_path": "/opt/rocm"
+      },
+      "level_zero": {
+        "version": "1.17.0"
+      },
+      "libraries": [
+        {
+          "name": "openblas",
+          "kind": "BLAS",
+          "version": "0.3.26",
+          "path": "/usr/lib"
+        }
+      ]
+    },
+    "execution": {
+      "process": {
+        "comm": "systemcard",
+        "pid": 123,
+        "ppid": 1,
+        "uid": 1000,
+        "gid": 1000
+      },
+      "permission": {
+        "is_root": false
+      },
+      "cgroup": {
+        "version": 1,
+        "path": "/demo",
+        "cpu_quota_us": 150000,
+        "cpu_period_us": 100000,
+        "cpu_limit_known": true,
+        "memory_limit": 17179869184,
+        "memory_current": 8589934592,
+        "memory_limit_known": true
+      },
+      "cpuset": {
+        "cpus_effective": "0-1",
+        "mems_effective": "0"
+      },
+      "accelerator_visibility_restricted": true
+    }
+  },
+  "meta": {
+    "sysal_version": "0.0.9"
+  },
+  "warnings": [
+    "demo: optional DIMM details unavailable"
+  ]
+}

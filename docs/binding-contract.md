@@ -1,10 +1,35 @@
 # Native binding contract
 
-The native extension exposes only `systemcard._native.collect(scope="default")`.
-It returns JSON-compatible Python values generated through Sysal's public `to_json()` API.
+`systemcard._native.collect(scope="default", sections=[])` returns JSON-compatible
+Python values through Sysal's public System::collect() and to_json() APIs.
+Scopes are default, basic, full; invalid scopes or sections fail before collection.
+An empty section list uses the scope preset. full requests raw evidence, but the
+returned public snapshot omits raw and includes meta.
 
-Supported scopes are `default`, `basic`, and `full`. `default` gathers all user-facing domains except raw evidence; `full` additionally requests Sysal raw evidence but does not expose it in the returned snapshot.
+All selected collections include Platform for the card header. Additional flags:
 
-Python modules must treat every field other than the top-level mapping as optional. The public snapshot contains `info`, `warnings`, and `meta`; presentation code must degrade gracefully when an optional Sysal field is absent.
+| Section | Collect flags |
+| --- | --- |
+| system | Platform |
+| cpu | Cpu, Execution |
+| memory | Memory, Execution |
+| accelerators | Accelerator, Execution, Pci |
+| network | Network, Execution |
+| storage | Storage |
+| software | Software |
+| execution | Execution, Cpu, Accelerator |
 
-The binding must not expose C++ Sysal object instances or include headers outside the pinned Sysal release package's public `include/sysal/` tree.
+Execution dependencies preserve resource visibility and cgroup limits. Pci supports
+GPU NUMA association. Domains can share prerequisite readers; selection does not
+promise that no supporting files or optional libraries are accessed.
+
+The snapshot contains info, warnings and meta. Every nested field is optional.
+Cgroup cpu_quota_us/cpu_period_us use microseconds; memory_limit/memory_current use
+bytes. A true *_limit_known with a null limit means unlimited; false means unknown.
+CPU quota/period is a time quota expressed as cores, separate from CPU affinity.
+Memory current belongs to the leaf cgroup, while host memory belongs to the machine.
+GPU uuid/parent_uuid identify physical and MIG devices; PCI addresses alone do not
+distinguish MIG instances. Missing fields in older snapshots degrade gracefully.
+
+The binding exposes no C++ instances and includes only public include/sysal headers
+from the versioned, SHA-256-pinned release package.

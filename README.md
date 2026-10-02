@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.8 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.8), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.9 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.9), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -53,3 +53,17 @@ python3 -m pip install /path/to/systemcard-0.1.0-cp36-cp36m-manylinux*.whl
 ```
 
 Python 3.6/3.7 uses Rich 12 and a legacy build adapter; newer interpreters retain the modern build backend. The project metadata is shared by both build paths.
+
+## Selective collection and bootstrap
+
+```bash
+systemcard --section cpu,memory --no-color
+systemcard --section accelerators
+systemcard --compact
+SYSTEMCARD_SPEC=/path/to/systemcard.whl bash run.sh --compact
+```
+
+Sections are validated before collection and collect only their domains plus required
+identity, visibility and NUMA dependencies. CPU and memory cards show cgroup limits
+separately from machine resources; GPU cards distinguish physical GPUs and MIG instances.
+See [launch options](LAUNCH.md) and the [binding contract](docs/binding-contract.md).
