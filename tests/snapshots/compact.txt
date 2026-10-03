@@ -22,11 +22,11 @@
 │ Used / available 16.0 GiB / 48.0 GiB                                         │
 │ Technology       DDR4                                                        │
 │ Configured speed 3200 MT/s                                                   │
-│ DIMM population  No slot reports                                             │
+│ DIMM population  —                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────── Accelerators ────────────────────────────────╮
 │ Summary            1 GPU · 1 MIG instances                                   │
-│ Process visibility 1 of 2 devices                                            │
+│ Process visibility 1 of 2 observed devices                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Warnings ──────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                      │

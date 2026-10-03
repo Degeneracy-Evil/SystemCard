@@ -23,7 +23,7 @@ namespace
         if(scope == "default")
         {
             return Collect::Platform | Collect::Cpu | Collect::Memory | Collect::Accelerator | Collect::Network |
-                   Collect::Storage | Collect::Pci | Collect::Software | Collect::Execution | Collect::Sensors | Collect::StorageHealth;
+                   Collect::Storage | Collect::Pci | Collect::Execution;
         }
         if(scope == "basic")
         {
@@ -50,7 +50,7 @@ namespace
             {"memory", Collect::Memory | Collect::Execution | Collect::Cpu | Collect::Pci},
             {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Cpu | Collect::Pci},
             {"network", Collect::Network | Collect::Execution | Collect::Cpu},
-            {"storage", Collect::Storage | Collect::StorageHealth},
+            {"storage", Collect::Storage},
             {"sensors", Collect::Sensors},
             {"health", Collect::Sensors | Collect::Memory | Collect::Storage | Collect::Pci | Collect::StorageHealth},
             {"topology", Collect::Cpu | Collect::Memory | Collect::Network | Collect::Storage | Collect::Pci},

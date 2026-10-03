@@ -18,7 +18,7 @@ def test_build_handles_a_minimal_snapshot() -> None:
     )
 
     assert model.subtitle == "node-1"
-    assert len(model.cards) == 8
+    assert len(model.cards) == 7
     assert model.warnings == ("partial collection",)
 
 

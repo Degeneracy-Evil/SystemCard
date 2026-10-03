@@ -78,4 +78,4 @@ def test_cli_only_requests_selected_sections(monkeypatch: pytest.MonkeyPatch) ->
     assert requested == [["cpu", "memory"]]
     requested.clear()
     assert cli.main(["--compact", "--no-color"]) == 0
-    assert requested == [["system", "cpu", "memory", "accelerators", "sensors"]]
+    assert requested == [["system", "cpu", "memory", "accelerators"]]

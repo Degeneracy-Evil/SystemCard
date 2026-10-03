@@ -9,10 +9,10 @@
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
 │ Model              —                                                         │
-│ Topology           0 packages · 0 cores · 0 logical                          │
-│ Process visibility 0 of 0 logical CPUs                                       │
+│ Topology           — packages · — cores · — logical                          │
+│ Process visibility — of — logical CPUs                                       │
 │ CPU quota          —                                                         │
-│ NUMA               0 nodes                                                   │
+│ NUMA               — nodes                                                   │
 │ Frequency          —                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─────────────────────────────────── Memory ───────────────────────────────────╮
@@ -22,7 +22,7 @@
 │ Used / available — / —                                                       │
 │ Technology       —                                                           │
 │ Configured speed —                                                           │
-│ DIMM population  No slot reports                                             │
+│ DIMM population  —                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
 │ Whole disks         —                                                        │
@@ -36,8 +36,8 @@
 │ Other interfaces    —                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────── Accelerators ────────────────────────────────╮
-│ Summary            No accelerators detected                                  │
-│ Process visibility 0 of 0 devices                                            │
+│ Summary            —                                                         │
+│ Process visibility —                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Execution context ──────────────────────────────╮
 │ Process           — · PID — · PPID —                                         │
@@ -49,14 +49,4 @@
 │ CPU set           —                                                          │
 │ Memory nodes      —                                                          │
 │ Visible resources 0 CPUs · 0 accelerators                                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭────────────────────────────────── Software ──────────────────────────────────╮
-│ CUDA       — · driver —                                                      │
-│ CUDA home  —                                                                 │
-│ ROCm       —                                                                 │
-│ ROCm home  —                                                                 │
-│ Level Zero —                                                                 │
-│ MPI        — —                                                               │
-│ RDMA core  —                                                                 │
-│ UCX        —                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯

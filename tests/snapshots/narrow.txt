@@ -41,17 +41,17 @@
 │ Configured speed                     │
 │ 3200 MT/s                            │
 │ DIMM population                      │
-│ No slot reports                      │
+│ —                                    │
 ╰──────────────────────────────────────╯
 ╭────────────── Storage ───────────────╮
 │ Whole disks                          │
-│ 0                                    │
+│ —                                    │
 │ Disk capacity                        │
 │ —                                    │
 │ Models                               │
 │ —                                    │
 │ Other block devices                  │
-│ 0                                    │
+│ —                                    │
 ╰──────────────────────────────────────╯
 ╭────────────── Network ───────────────╮
 │ Physical interfaces                  │
@@ -67,7 +67,7 @@
 │ Summary                              │
 │ 1 GPU · 1 MIG instances              │
 │ Process visibility                   │
-│ 1 of 2 devices                       │
+│ 1 of 2 observed devices              │
 ╰──────────────────────────────────────╯
 ╭───────── Execution context ──────────╮
 │ Process                              │
@@ -88,16 +88,6 @@
 │ 0                                    │
 │ Visible resources                    │
 │ 2 CPUs · 1 accelerators              │
-╰──────────────────────────────────────╯
-╭────────────── Software ──────────────╮
-│ CUDA       — · driver —              │
-│ CUDA home  —                         │
-│ ROCm       6.2.0                     │
-│ ROCm home  /opt/rocm                 │
-│ Level Zero 1.17.0                    │
-│ MPI        — —                       │
-│ RDMA core  —                         │
-│ UCX        —                         │
 ╰──────────────────────────────────────╯
 ╭────────────── Warnings ──────────────╮
 │ demo: optional DIMM details          │

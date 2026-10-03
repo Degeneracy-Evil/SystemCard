@@ -9,6 +9,7 @@ from systemcard.presentation_types import Card, DetailTable
 from systemcard.rdma import rdma_tables
 from systemcard.schema import integer_value, list_value, mapping_items, mapping_value
 from systemcard.storage_connections import storage_connection_tables
+from systemcard.storage_mounts import mount_table
 
 
 def topology_card(info: Mapping[str, Any]) -> Card:
@@ -75,10 +76,13 @@ def topology_card(info: Mapping[str, Any]) -> Card:
                 tuple(attachments),
             )
         )
-    tables.extend(memory_topology_tables(memory))
-    tables.extend(storage_connection_tables(mapping_value(info.get("storage"))))
+    tables.extend(memory_topology_tables(memory, detailed=True))
+    tables.extend(storage_connection_tables(mapping_value(info.get("storage")), detailed=True))
     tables.extend(pci_tables(mapping_value(info.get("pci"))))
-    tables.extend(rdma_tables(mapping_value(info.get("network")), detailed=False))
+    tables.extend(rdma_tables(mapping_value(info.get("network")), detailed=True))
+    mounts = mount_table(mapping_value(info.get("storage")))
+    if mounts is not None:
+        tables.append(mounts)
     blocks_rows: List[Tuple[str, ...]] = []
     for item in devices:
         if item.get("parent"):

@@ -6,12 +6,12 @@ include(FetchContent)
 find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 find_package(pybind11 CONFIG REQUIRED)
 
-set(SYSAL_VERSION "0.0.20" CACHE STRING "Pinned Sysal release version")
+set(SYSAL_VERSION "0.0.21" CACHE STRING "Pinned Sysal release version")
 set(SYSAL_PACKAGE_URL
     "https://github.com/Degeneracy-Evil/sysal/releases/download/v${SYSAL_VERSION}/sysal-${SYSAL_VERSION}-linux-x86_64.tar.gz"
     CACHE STRING "Sysal release package URL")
 set(SYSAL_PACKAGE_SHA256
-    "3bcae66f46281c9cad46c32f21b16db541430aa286c61b1939520aa571769564"
+    "6aab96f3969a6ccd6bf2bfa1c306943436f4dbe1ab9fa1fa2c54fae876f52aab"
     CACHE STRING "Sysal release package SHA-256")
 
 FetchContent_Declare(

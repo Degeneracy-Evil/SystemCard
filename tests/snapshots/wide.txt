@@ -8,31 +8,31 @@
 │ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Memory ─────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
-│ Host total       64.0 GiB                               │  │ Whole disks         0                                   │
+│ Host total       64.0 GiB                               │  │ Whole disks         —                                   │
 │ Cgroup limit     16.0 GiB                               │  │ Disk capacity       —                                   │
 │ Cgroup current   8.0 GiB                                │  │ Models              —                                   │
-│ Used / available 16.0 GiB / 48.0 GiB                    │  │ Other block devices 0                                   │
+│ Used / available 16.0 GiB / 48.0 GiB                    │  │ Other block devices —                                   │
 │ Technology       DDR4                                   │  │                                                         │
 │ Configured speed 3200 MT/s                              │  │                                                         │
-│ DIMM population  No slot reports                        │  │                                                         │
+│ DIMM population  —                                      │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Network ────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
 │ Physical interfaces 0                                   │  │ Summary            1 GPU · 1 MIG instances              │
-│ Links up            0                                   │  │ Process visibility 1 of 2 devices                       │
+│ Links up            0                                   │  │ Process visibility 1 of 2 observed devices              │
 │ Other interfaces    1                                   │  │                                                         │
 │ Unclassified        1                                   │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
-╭─────────────────── Execution context ───────────────────╮  ╭─────────────────────── Software ────────────────────────╮
-│ Process           systemcard · PID 123 · PPID 1         │  │ CUDA       — · driver —                                 │
-│ Identity          UID 1000 · GID 1000 · root No         │  │ CUDA home  —                                            │
-│ Cgroup            v2 · /demo                            │  │ ROCm       6.2.0                                        │
-│ CPU quota         1.5 CPUs                              │  │ ROCm home  /opt/rocm                                    │
-│ Memory limit      16.0 GiB                              │  │ Level Zero 1.17.0                                       │
-│ Memory current    8.0 GiB                               │  │ MPI        — —                                          │
-│ CPU set           0-1                                   │  │ RDMA core  —                                            │
-│ Memory nodes      0                                     │  │ UCX        —                                            │
-│ Visible resources 2 CPUs · 1 accelerators               │  │                                                         │
-╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
+╭─────────────────── Execution context ───────────────────╮
+│ Process           systemcard · PID 123 · PPID 1         │
+│ Identity          UID 1000 · GID 1000 · root No         │
+│ Cgroup            v2 · /demo                            │
+│ CPU quota         1.5 CPUs                              │
+│ Memory limit      16.0 GiB                              │
+│ Memory current    8.0 GiB                               │
+│ CPU set           0-1                                   │
+│ Memory nodes      0                                     │
+│ Visible resources 2 CPUs · 1 accelerators               │
+╰─────────────────────────────────────────────────────────╯
 ╭────────────────────────────────────────────────────── Warnings ──────────────────────────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

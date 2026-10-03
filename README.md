@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.20 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.20), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.21 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.21), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -105,9 +105,10 @@ uv run --locked systemcard --section memory,storage
 ```
 
 The topology view follows explicit NUMA, PCI, partition and interface relationships.
-Storage details include layered block devices and every mount in the current
-namespace. Network details add driver/firmware versions, supported link modes and
-bridge/bond/VLAN relationships. Memory details show available EDAC controllers,
+Ordinary storage details show disk identity, main configuration and associated block
+mounts. Topology includes layered block dependencies and every namespace mount.
+Network details show driver/firmware versions and supported link modes; topology
+contains bridge/bond/VLAN relationships, RDMA attachments and EDAC controllers,
 ordered channel/slot locations and firmware ECC reports. EDAC DIMMs and ranks
 remain separate; rank capacity is per rank. Controller layer maxima are indices,
 not population counts. Firmware-to-EDAC associations show their unique label and
@@ -116,7 +117,7 @@ Missing controller associations or inventory completeness remain unknown.
 `--sources` shows collection origins and observed failure reasons;
 a successful query does not mean that the source supplied every field.
 
-Storage and topology details also show PCI storage controller functions, NVMe
+Topology details show PCI storage controller functions, NVMe
 kernel controllers and SCSI hosts separately. Namespace IDs belong to their NVMe
 subsystem; controller links come from sysfs ancestry or actual multipath links.
 SCSI devices retain H:C:T:L addresses. ATA port numbers are kernel identifiers,
@@ -132,11 +133,11 @@ uv run --locked systemcard --section sensors --sources
 
 Sensor details preserve kernel names, channels, units, limits and reported flags.
 Hardware findings distinguish sensor alarms, md RAID degradation and historical EDAC
-counts. Missing evidence remains unknown. Default output adds a concise findings
-summary when findings exist; it never labels the entire machine healthy from their absence.
+counts. Missing evidence remains unknown. Findings appear in the explicit health
+view; their absence does not establish that the entire machine is healthy.
 
 Storage health uses optional `smartctl` / `nvme-cli` read-only reports.
-`uv run --locked systemcard --section storage --sources --no-color` shows
+`uv run --locked systemcard --section health --sources --no-color` shows
 per-device availability and protocol-specific reports; `--section health`
 separates current warnings, endurance estimates and historical errors.
 Permission failures stay unknown; SystemCard never elevates privileges or changes device settings.
@@ -144,10 +145,14 @@ Permission failures stay unknown; SystemCard never elevates privileges or change
 ## Hardware overview and details
 
 The default view contains summary cards, with machine, CPU, memory, whole disks
-and physical interfaces first. Device tables, partitions, mounts and complete
-identity fields appear when selecting a section. Whole-disk totals exclude
+and physical interfaces first. Software, sensors and drive health queries require
+an explicit section. Ordinary details show identity and configuration; topology
+and health hold complete relationships and diagnostic evidence. Whole-disk totals exclude
 partitions and virtual block layers; physical-interface counts use explicit
-kernel identity. Unknown classifications remain visible.
+kernel identity. Unknown classifications remain visible. Partial capacity totals
+are labelled as known portions; missing capacities stay unknown. Failed collection
+is distinguished from a successful empty inventory. DIMM counts describe observed
+entries, separately from firmware-reported slot counts.
 
 ```bash
 uv run --locked systemcard
@@ -158,5 +163,5 @@ uv run --locked systemcard --section health
 
 Detailed field tables group properties by device and omit columns with no reports.
 Current findings precede endurance estimates and historical error counters.
-Drive-query permission or tool failures are summarized in storage and health cards;
+Drive-query permission or tool failures are summarized in the health view;
 use `--sources` for the underlying observations.

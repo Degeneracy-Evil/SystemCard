@@ -22,13 +22,13 @@
 │ Used / available 16.0 GiB / 48.0 GiB                                         │
 │ Technology       DDR4                                                        │
 │ Configured speed 3200 MT/s                                                   │
-│ DIMM population  No slot reports                                             │
+│ DIMM population  —                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
-│ Whole disks         0                                                        │
+│ Whole disks         —                                                        │
 │ Disk capacity       —                                                        │
 │ Models              —                                                        │
-│ Other block devices 0                                                        │
+│ Other block devices —                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Network ───────────────────────────────────╮
 │ Physical interfaces 0                                                        │
@@ -38,7 +38,7 @@
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────── Accelerators ────────────────────────────────╮
 │ Summary            1 GPU · 1 MIG instances                                   │
-│ Process visibility 1 of 2 devices                                            │
+│ Process visibility 1 of 2 observed devices                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Execution context ──────────────────────────────╮
 │ Process           systemcard · PID 123 · PPID 1                              │
@@ -50,16 +50,6 @@
 │ CPU set           0-1                                                        │
 │ Memory nodes      0                                                          │
 │ Visible resources 2 CPUs · 1 accelerators                                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭────────────────────────────────── Software ──────────────────────────────────╮
-│ CUDA       — · driver —                                                      │
-│ CUDA home  —                                                                 │
-│ ROCm       6.2.0                                                             │
-│ ROCm home  /opt/rocm                                                         │
-│ Level Zero 1.17.0                                                            │
-│ MPI        — —                                                               │
-│ RDMA core  —                                                                 │
-│ UCX        —                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Warnings ──────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                      │

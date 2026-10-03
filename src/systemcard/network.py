@@ -2,18 +2,19 @@
 
 from typing import Any, List, Mapping, Optional, Tuple
 
+from systemcard.collection_status import inventory_known
 from systemcard.formatters import UNKNOWN, bit_rate, enum_text, pci_address, text, yes_no
-from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_types import Card, DetailTable
-from systemcard.rdma import rdma_summary, rdma_tables
+from systemcard.rdma import rdma_summary
 from systemcard.schema import mapping_items as _mappings
-from systemcard.schema import mapping_value
 
 INTERFACE_STATES = {0: "UP", 1: "DOWN", 2: "UNKNOWN"}
 
 
-def _summary(network: Mapping[str, Any], interfaces: List[Mapping[str, Any]]) -> Tuple[Tuple[str, str], ...]:
+def _summary(
+    network: Mapping[str, Any], interfaces: List[Mapping[str, Any]], confirmed: bool
+) -> Tuple[Tuple[str, str], ...]:
     physical = [
         item
         for item in interfaces
@@ -21,9 +22,9 @@ def _summary(network: Mapping[str, Any], interfaces: List[Mapping[str, Any]]) ->
     ]
     unclassified = sum(not item.get("interface_kind") and not item.get("pci_address") for item in interfaces)
     summary: Tuple[Tuple[str, str], ...] = (
-        ("Physical interfaces", str(len(physical)) if "interfaces" in network else UNKNOWN),
-        ("Links up", str(sum(item.get("state") == 0 for item in physical)) if "interfaces" in network else UNKNOWN),
-        ("Other interfaces", str(len(interfaces) - len(physical)) if "interfaces" in network else UNKNOWN),
+        ("Physical interfaces", str(len(physical)) if confirmed else UNKNOWN),
+        ("Links up", str(sum(item.get("state") == 0 for item in physical)) if confirmed else UNKNOWN),
+        ("Other interfaces", str(len(interfaces) - len(physical)) if confirmed else UNKNOWN),
     )
     if unclassified:
         summary += (("Unclassified", str(unclassified)),)
@@ -39,10 +40,11 @@ def _summary(network: Mapping[str, Any], interfaces: List[Mapping[str, Any]]) ->
     return summary + rdma_summary(network)
 
 
-def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mapping[str, Any]] = None) -> Card:
+def network_card(network: Mapping[str, Any], detailed: bool, meta: Optional[Mapping[str, Any]] = None) -> Card:
     interfaces = _mappings(network.get("interfaces"))
+    confirmed = inventory_known(meta or {}, "network", network.get("interfaces"))
     if not detailed:
-        return Card("network", "Network", _summary(network, interfaces))
+        return Card("network", "Network", _summary(network, interfaces, confirmed))
     up = [item for item in interfaces if item.get("state") == 0]
     visible = sum(item.get("visible_to_current_process") is True for item in interfaces)
     shown = interfaces
@@ -64,7 +66,6 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
         for item in shown
     )
     tables: List[DetailTable] = [DetailTable("Interfaces", columns, rows)]
-    tables.extend(rdma_tables(network))
     fields = (
         ("device_name", "Device"),
         ("vendor", "PCI vendor ID"),
@@ -95,9 +96,6 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
                 "Interface hardware and configuration", ("Interface", "Field", "Value"), hardware_rows, group_by=0
             )
         )
-    if pci is not None:
-        controllers = interfaces + _mappings(mapping_value(network.get("rdma")).get("devices"))
-        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in controllers}))
     autoneg = tuple(
         (text(item.get("name")), "Auto-negotiation", yes_no(item.get("autonegotiation")))
         for item in shown
@@ -123,29 +121,12 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
                 modes,
             )
         )
-    links = tuple(
-        (
-            text(item.get("name")),
-            text(item.get("master")),
-            _joined(item.get("lower_interfaces")),
-            text(item.get("vlan_parent")),
-            text(item.get("vlan_id")),
-        )
-        for item in shown
-        if item.get("master") or item.get("lower_interfaces") or item.get("vlan_parent")
-    )
-    if links:
-        tables.append(
-            DetailTable(
-                "Interface topology", ("Interface", "Master", "Lower interfaces", "VLAN parent", "VLAN ID"), links
-            )
-        )
     return Card(
         "network",
         "Network",
         (
-            ("Interfaces", f"{len(interfaces)} total · {len(up)} up"),
-            ("Process visibility", f"{visible} of {len(interfaces)} interfaces"),
+            ("Interfaces", f"{len(interfaces)} observed · {len(up)} up" if confirmed else UNKNOWN),
+            ("Process visibility", f"{visible} of {len(interfaces)} observed interfaces" if confirmed else UNKNOWN),
             *rdma_summary(network),
         ),
         tuple(tables),

@@ -6,7 +6,13 @@ from systemcard.formatters import text
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
 from systemcard.sensors import sensor_groups, sensor_name
-from systemcard.storage_health import DRIVE_FINDINGS, HISTORICAL_FINDINGS, drive_finding_tables, query_summary
+from systemcard.storage_health import (
+    DRIVE_FINDINGS,
+    HISTORICAL_FINDINGS,
+    drive_finding_tables,
+    query_summary,
+    storage_health_tables,
+)
 
 _SEVERITY = {0: "Information", 1: "Warning", 2: "Critical"}
 _KINDS = {
@@ -22,13 +28,6 @@ _COVERAGE = {
     2: "Partial evidence",
     3: "Evidence available (not a completeness guarantee)",
 }
-
-
-def has_findings(info: Mapping[str, Any]) -> bool:
-    health = mapping_value(info.get("hardware_health"))
-    return any(
-        mapping_items(health.get(key)) for key in ("sensor_alerts", "storage_alerts", "memory_events", "drive_findings")
-    )
 
 
 def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
@@ -102,6 +101,7 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
     )
     if detailed:
         tables.extend(drive_finding_tables(health))
+        tables.extend(storage_health_tables(mapping_value(info.get("storage")), detailed=True))
         if memory:
             tables.append(
                 DetailTable(

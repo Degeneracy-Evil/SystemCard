@@ -15,7 +15,7 @@ All selected collections include Platform for the card header. Additional flags:
 | memory | Memory, Execution, Cpu, Pci |
 | accelerators | Accelerator, Execution, Cpu, Pci |
 | network | Network, Execution, Cpu |
-| storage | Storage, StorageHealth |
+| storage | Storage |
 | software | Software |
 | execution | Execution, Cpu, Accelerator |
 | topology | Cpu, Memory, Network, Storage, Pci |
@@ -76,7 +76,7 @@ retain their public meaning. RAID device reports describe the exposed logical de
 
 Sysal 0.0.17 adds explicit direct upstream addresses, bound PCI driver names,
 PF addresses for VFs, kernel local CPU lists, and maximum/enabled VF counts.
-Network and storage detail views join controllers by exact PCI address, retain
+The topology view joins controllers by exact PCI address, retains
 current and maximum links separately, and follow only reported upstream addresses.
 Paths mark where reports stop, where a device report is missing, or where a cycle
 occurs; they do not claim a complete motherboard topology or application throughput.
@@ -133,9 +133,10 @@ permissions or changes device settings.
 
 ## Sensors and hardware findings
 
-Default collection now includes Sensors. Sensors selection reads only Platform and
-Sensors; health includes Memory/Storage/Pci dependencies. Compact default collection
-also requests Sensors while retaining compact presentation.
+Default and compact collection do not request Software, Sensors or StorageHealth.
+Sensors selection reads Platform and Sensors; health includes Memory/Storage/Pci
+dependencies and read-only drive health queries. Ordinary storage selection requests
+Storage alone. Sysal full retains its existing all-domain public meaning.
 
 Public sensors contain temperatures (signed millidegrees Celsius), fans (RPM) and
 powers (microwatts). Input and average are separate, and limits/flags remain optional.
@@ -148,8 +149,8 @@ hardware_health contains sensor_alerts, storage_alerts, memory_events and covera
 Sysal derives these findings from already collected typed models. Python does no
 threshold comparison or driver-status interpretation. Driver flags may be latched;
 EDAC events are cumulative since initialization/reset. No findings does not establish
-normal operation. Default output adds a compact findings card only when findings exist;
-full evidence is available through --section health and --sources. Unsupported or
+normal operation. Findings and full evidence are available through --section health
+and --sources. Unsupported or
 unreadable power/fan/EDAC data cannot be replaced by a claim of normal operation.
 
 ## Read-only storage health
@@ -166,7 +167,7 @@ and vendor raw display text. SCSI uncorrected counts are historical cumulative v
 endurance estimates and historical events separate. SMART overall passed does not
 guarantee a fault-free device. No usable reports means unknown, including permission
 failures, absent tools, unsupported hardware and skipped low-power devices.
-`--section storage --sources` explains individual query outcomes.
+`--section health --sources` explains individual query outcomes.
 
 Queries use optional smartctl (JSON-capable 7.x), with nvme-cli only when smartctl
 is absent for NVMe. No installation, privilege escalation, SMART enabling, self-test,
@@ -177,8 +178,31 @@ driver support. Compact collection does not add these device queries.
 ## Presentation levels
 
 Default output shows summary cards without detail tables; selecting a section
-expands its hardware fields. `--compact` keeps the existing four collection domains
-and optional sensor findings. Presentation ordering does not change Sysal flags.
+expands its hardware fields. `--compact` shows system, CPU, memory and accelerators, with identity and visibility
+dependencies. Ordinary storage shows whole-disk identity/configuration and associated
+block-device mounts; complete namespace mounts and protocol/PCI relationships belong
+to topology. EDAC inventory and RDMA attachments belong to topology, and drive reports
+belong to health. Presentation ordering does not change Sysal flags.
 DetailTable may declare a grouping column for device field/value records; the
 renderer preserves row order within each device, hides all-missing columns, and
 retains zero and false reports. Native JSON remains unchanged.
+
+## Inventory and quantity semantics
+
+The default scope requests Platform, Cpu, Memory, Accelerator, Network, Storage,
+Pci and Execution. It does not request Software, Sensors or StorageHealth.
+
+Card composition checks meta.failed_collectors before presenting a failed domain's
+empty model. Empty inventories mean zero only with an explicit successful collector
+report and a valid list; older snapshots without this evidence remain unknown.
+Nonempty inventories report observed devices, without claiming physical completeness.
+A successful domain does not establish every individual field.
+
+Whole-disk capacity totals retain valid zero values. A partial total identifies its
+known portion and disk count; entirely missing capacities remain unknown.
+Memory dimm_count is the observed source entry count, separate from the firmware's
+reported_slot_count. JSON unsigned quantities reject negatives, fractions, booleans
+and overflow; signed temperatures remain signed.
+
+Domain modules build cards; model.py selects and composes them. resource_limits.py
+shares cgroup formatting. The binding and rendering layers keep their existing roles.

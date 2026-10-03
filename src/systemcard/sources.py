@@ -2,7 +2,7 @@
 
 from typing import Any, Mapping, Set, Tuple
 
-from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES
+from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES, collector_domain
 from systemcard.formatters import UNKNOWN, pci_address
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
@@ -27,9 +27,7 @@ def _source(origin: str) -> str:
 
 
 def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
-    domains = {card.section}
-    if card.section == "storage":
-        domains.add("storage_health")
+    domains = {collector_domain(card.section)}
     if card.section == "cpu":
         domains.add("sensors")
     if card.section == "health":

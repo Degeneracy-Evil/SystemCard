@@ -2,7 +2,8 @@
 
 from typing import Any, Mapping
 
-from systemcard.schema import integer_or
+from systemcard.presentation_types import Card
+from systemcard.schema import integer_or, list_value
 
 READ_FAILURES = {
     0: "Interface/file not present",
@@ -21,3 +22,31 @@ def collection_result(report: Mapping[str, Any]) -> str:
     status = COLLECT_STATUSES.get(integer_or(report.get("status"), -1), "Unknown status")
     reason = READ_FAILURES.get(integer_or(report.get("failure"), -1))
     return status if reason is None else f"{status}: {reason}"
+
+
+def inventory_known(meta: Mapping[str, Any], domain: str, entries: object) -> bool:
+    """An empty inventory needs a successful collector report to mean zero."""
+    if not isinstance(entries, list) or domain in list_value(meta.get("failed_collectors")):
+        return False
+    return bool(list_value(entries)) or domain in list_value(meta.get("succeeded_collectors"))
+
+
+def collector_domain(section: str) -> str:
+    """Translate presentation section names to native collector names."""
+    return {"system": "platform", "accelerators": "accelerator"}.get(section, section)
+
+
+def with_collection_status(card: Card, meta: Mapping[str, Any]) -> Card:
+    """Do not present default model values as results of a failed collector."""
+    if card.section in {"topology", "health"}:
+        return card
+    domain = collector_domain(card.section)
+    if domain in list_value(meta.get("failed_collectors")):
+        return Card(card.section, card.title, (("Collection", "Failed; inventory unknown"),))
+    if (
+        isinstance(meta.get("succeeded_collectors"), list)
+        and isinstance(meta.get("failed_collectors"), list)
+        and domain not in list_value(meta.get("succeeded_collectors"))
+    ):
+        return Card(card.section, card.title, (("Collection", "Not collected; inventory unknown"),))
+    return card

@@ -1,14 +1,13 @@
-"""Whole-disk summaries with separate block layers, mounts and health reports."""
+"""Whole-disk identity, main configuration and associated mounts."""
 
 from typing import Any, List, Mapping, Optional, Tuple
 
+from systemcard.collection_status import inventory_known
 from systemcard.formatters import UNKNOWN, bytes_value, enum_text, pci_address, text, yes_no
-from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined
 from systemcard.presentation_types import Card, DetailTable
-from systemcard.schema import integer_or, mapping_items
-from systemcard.storage_connections import storage_connection_tables
-from systemcard.storage_health import query_summary, storage_health_tables
+from systemcard.schema import integer_or, integer_value, mapping_items
+from systemcard.storage_mounts import mount_table
 
 STORAGE_KINDS = {0: "NVMe", 1: "SSD", 2: "HDD", 3: "Other"}
 
@@ -36,25 +35,26 @@ def _devices(title: str, devices: List[Mapping[str, Any]]) -> DetailTable:
     )
 
 
-def storage_card(storage: Mapping[str, Any], detailed: bool, pci: Optional[Mapping[str, Any]] = None) -> Card:
+def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapping[str, Any]] = None) -> Card:
     devices = mapping_items(storage.get("devices"))
     disks = [item for item in devices if _whole_disk(item)]
     other = [item for item in devices if not _whole_disk(item)]
-    total = sum(integer_or(item.get("capacity")) for item in disks)
+    capacities = [integer_value(item.get("capacity")) for item in disks]
+    known = [value for value in capacities if value is not None and value >= 0]
+    capacity = bytes_value(sum(known)) if known else UNKNOWN
+    if known and len(known) != len(disks):
+        capacity += f" (known portion: {len(known)}/{len(disks)} disks)"
+    confirmed = inventory_known(meta or {}, "storage", storage.get("devices"))
     models = list(dict.fromkeys(str(item["model"]) for item in disks if item.get("model")))
     rows: Tuple[Tuple[str, str], ...] = (
-        ("Whole disks", str(len(disks)) if "devices" in storage else UNKNOWN),
-        ("Disk capacity", bytes_value(total) if disks else UNKNOWN),
+        ("Whole disks", str(len(disks)) if confirmed else UNKNOWN),
+        ("Disk capacity", capacity),
         ("Models", joined(models[:3], " / ") + ("; more in --section storage" if len(models) > 3 else "")),
-        ("Other block devices", str(len(other)) if "devices" in storage else UNKNOWN),
+        ("Other block devices", str(len(other)) if confirmed else UNKNOWN),
     )
-    if storage.get("health"):
-        rows += (("Health queries", query_summary(storage)),)
     if not detailed:
         return Card("storage", "Storage", rows)
     tables: List[DetailTable] = [_devices("Whole disks (kernel inventory)", disks)]
-    if other:
-        tables.append(_devices("Partitions and other block layers", other))
     fields = (
         ("vendor", "Vendor"),
         ("serial", "Serial"),
@@ -91,62 +91,7 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
         tables.append(
             DetailTable("Storage hardware and configuration", ("Device", "Field", "Value"), values, group_by=0)
         )
-    tables.extend(storage_connection_tables(storage, detailed=True))
-    if pci is not None:
-        addresses = {pci_address(item.get("pci_address")) for item in disks}
-        addresses.update(pci_address(item.get("pci_address")) for item in mapping_items(storage.get("controllers")))
-        tables.extend(pci_tables(pci, addresses))
-    relations = tuple(
-        (
-            text(item.get("name")),
-            text(item.get("layer")),
-            text(item.get("parent")),
-            text(item.get("partition_number")),
-            joined(item.get("slaves")),
-        )
-        for item in devices
-        if item.get("parent") or item.get("slaves") or item.get("mapper_name") or item.get("raid_level")
-    )
-    if relations:
-        tables.append(
-            DetailTable(
-                "Block topology", ("Device", "Layer", "Partition parent", "Partition", "Lower devices"), relations
-            )
-        )
-    mounts = mapping_items(storage.get("mounts"))
-    if mounts:
-        mount_rows = tuple(
-            (
-                text(item.get("mount_id")),
-                text(item.get("block_device") or item.get("source")),
-                text(item.get("filesystem")),
-                text(item.get("path")),
-                text(item.get("root")),
-                yes_no(item.get("read_only")),
-            )
-            for item in mounts
-        )
-    else:
-        # Earlier snapshots retain only a representative mount per block device.
-        mount_rows = tuple(
-            (
-                UNKNOWN,
-                text(item.get("name")),
-                text(item.get("fs_type")),
-                text(item.get("mount_point")),
-                UNKNOWN,
-                UNKNOWN,
-            )
-            for item in devices
-            if item.get("mount_point")
-        )
-    if mount_rows:
-        tables.append(
-            DetailTable(
-                "Mounts (current namespace)" if mounts else "Reported mounts (partial inventory)",
-                ("ID", "Device/source", "Filesystem", "Mount point", "FS root", "Read only"),
-                mount_rows,
-            )
-        )
-    tables.extend(storage_health_tables(storage, detailed=True))
+    mounts = mount_table(storage, block_only=True)
+    if mounts is not None:
+        tables.append(mounts)
     return Card("storage", "Storage", rows, tuple(tables))
