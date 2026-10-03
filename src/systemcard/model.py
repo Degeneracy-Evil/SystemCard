@@ -1,6 +1,5 @@
 """Transform normalized snapshots into renderer-friendly cards."""
 
-from dataclasses import dataclass
 from typing import Any, Callable, Counter, Dict, List, Mapping, Optional, Tuple, Union
 
 from systemcard.formatters import (
@@ -15,6 +14,9 @@ from systemcard.formatters import (
     text,
     yes_no,
 )
+from systemcard.presentation_types import Card as Card
+from systemcard.presentation_types import DetailTable as DetailTable
+from systemcard.presentation_types import DisplayModel as DisplayModel
 from systemcard.schema import (
     SECTIONS,
     integer_value,
@@ -32,6 +34,8 @@ from systemcard.schema import (
 from systemcard.schema import (
     mapping_value as _mapping,
 )
+from systemcard.sources import with_sources
+from systemcard.topology import topology_card
 
 ACCELERATOR_KINDS = {0: "GPU", 1: "NPU", 2: "FPGA", 3: "Other"}
 STORAGE_KINDS = {0: "NVMe", 1: "SSD", 2: "HDD", 3: "Other"}
@@ -65,31 +69,6 @@ def _joined(values: object, separator: str = ", ") -> str:
 
 def _limited(items: List[Mapping[str, Any]], detailed: bool, limit: int) -> List[Mapping[str, Any]]:
     return items if detailed else items[:limit]
-
-
-@dataclass(frozen=True)
-class DetailTable:
-    title: str
-    columns: Tuple[str, ...]
-    rows: Tuple[Tuple[str, ...], ...]
-    omitted: int = 0
-
-
-@dataclass(frozen=True)
-class Card:
-    section: str
-    title: str
-    rows: Tuple[Tuple[str, str], ...]
-    tables: Tuple[DetailTable, ...] = ()
-
-
-@dataclass(frozen=True)
-class DisplayModel:
-    title: str
-    subtitle: str
-    cards: Tuple[Card, ...]
-    warnings: Tuple[str, ...]
-    footer: str = ""
 
 
 def _system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: bool) -> Card:
@@ -577,6 +556,65 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
                     tuple((text(item.get("locator")), text(item.get("bank_locator"))) for item in empty),
                 ),
             )
+    inventory_rows: List[Tuple[str, str]] = []
+    inventory_source = memory.get("dimm_inventory_source")
+    if inventory_source:
+        expected = text(memory.get("reported_slot_count"))
+        complete = memory.get("reported_slots_complete")
+        coverage = (
+            "complete against firmware report"
+            if complete is True
+            else "partial"
+            if complete is False
+            else "completeness unknown"
+        )
+        inventory_rows.append(
+            ("Slot inventory", f"{inventory_source} · {len(dimms)} observed · {expected} reported · {coverage}")
+        )
+    if memory.get("reported_array_error_correction"):
+        inventory_rows.append(("Firmware ECC report", text(memory.get("reported_array_error_correction"))))
+    if detailed and (memory.get("reported_array_location") or memory.get("reported_array_max_capacity") is not None):
+        tables += (
+            DetailTable(
+                "Firmware memory array report",
+                ("Location", "Maximum capacity", "Error correction"),
+                (
+                    (
+                        text(memory.get("reported_array_location")),
+                        bytes_value(memory.get("reported_array_max_capacity")),
+                        text(memory.get("reported_array_error_correction")),
+                    ),
+                ),
+            ),
+        )
+    if detailed:
+        controllers = _mappings(memory.get("controllers"))
+        if controllers:
+            tables += (
+                DetailTable(
+                    "EDAC controllers (counters since reset)",
+                    ("ID", "Name", "Capacity", "NUMA", "PCI", "Corrected", "Uncorrected"),
+                    tuple(
+                        (
+                            text(item.get("index")),
+                            text(item.get("name")),
+                            bytes_value(item.get("capacity")),
+                            text(item.get("numa_node")),
+                            pci_address(item.get("pci_address")),
+                            text(item.get("corrected_errors")),
+                            text(item.get("uncorrected_errors")),
+                        )
+                        for item in controllers
+                    ),
+                ),
+            )
+        relations = tuple(
+            (text(item.get("locator")), text(item.get("controller_index")), text(item.get("numa_node")))
+            for item in dimms
+            if item.get("controller_index") is not None
+        )
+        if relations:
+            tables += (DetailTable("DIMM controller placement", ("Slot", "Controller", "NUMA"), relations),)
     return Card(
         "memory",
         "Memory",
@@ -596,6 +634,7 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
                 "DIMM population",
                 f"{_integer(memory.get('populated_dimms'), len(populated))} of {_integer(memory.get('dimm_count'), len(dimms))} slots",
             ),
+            *inventory_rows,
         ),
         tables,
     )
@@ -679,6 +718,14 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
             ("device_name", "Device"),
             ("vendor", "PCI vendor ID"),
             ("driver", "Driver"),
+            ("driver_version", "Driver version"),
+            ("firmware_version", "Firmware"),
+            ("permanent_mac", "Permanent address"),
+            ("interface_kind", "Interface kind"),
+            ("bond_mode", "Bond mode"),
+            ("vlan_id", "VLAN ID"),
+            ("vlan_parent", "VLAN parent"),
+            ("master", "Master"),
             ("mtu", "MTU (bytes)"),
             ("duplex", "Duplex"),
             ("physical_port_name", "Physical port"),
@@ -697,6 +744,49 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
             tables.append(
                 DetailTable("Interface hardware and configuration", ("Interface", "Field", "Value"), hardware_rows)
             )
+    if detailed:
+        autoneg = tuple(
+            (text(item.get("name")), "Auto-negotiation", yes_no(item.get("autonegotiation")))
+            for item in shown
+            if "autonegotiation" in item
+        )
+        if autoneg:
+            tables.append(DetailTable("Link negotiation", ("Interface", "Field", "Value"), autoneg))
+        modes = tuple(
+            (
+                text(item.get("name")),
+                _joined(item.get("supported_link_modes"), "\n"),
+                _joined(item.get("advertised_link_modes"), "\n"),
+                _joined(item.get("peer_link_modes"), "\n"),
+            )
+            for item in shown
+            if item.get("supported_link_modes") or item.get("advertised_link_modes") or item.get("peer_link_modes")
+        )
+        if modes:
+            tables.append(
+                DetailTable(
+                    "Link modes (capability / advertisements)",
+                    ("Interface", "Supported", "Advertised", "Peer advertised"),
+                    modes,
+                )
+            )
+        links = tuple(
+            (
+                text(item.get("name")),
+                text(item.get("master")),
+                _joined(item.get("lower_interfaces")),
+                text(item.get("vlan_parent")),
+                text(item.get("vlan_id")),
+            )
+            for item in shown
+            if item.get("master") or item.get("lower_interfaces") or item.get("vlan_parent")
+        )
+        if links:
+            tables.append(
+                DetailTable(
+                    "Interface topology", ("Interface", "Master", "Lower interfaces", "VLAN parent", "VLAN ID"), links
+                )
+            )
     return Card(
         "network",
         "Network",
@@ -710,13 +800,23 @@ def _network_card(network: Mapping[str, Any], detailed: bool) -> Card:
 
 def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
     devices = _mappings(storage.get("devices"))
-    useful = [item for item in devices if item.get("kind") != 3 or item.get("mount_point")]
-    shown = _limited(useful if useful else devices, detailed, 12)
-    total = sum(_integer(item.get("capacity")) for item in useful)
+    useful = [
+        item
+        for item in devices
+        if (item.get("kind") != 3 and item.get("layer") != "partition") or item.get("mount_point")
+    ]
+    source = devices if detailed else (useful if useful else devices)
+    shown = _limited(source, detailed, 12)
+    physical = [item for item in devices if item.get("layer") == "disk"]
+    total = sum(
+        _integer(item.get("capacity")) for item in (physical if any("layer" in item for item in devices) else useful)
+    )
     rows: Tuple[Tuple[str, ...], ...] = tuple(
         (
             text(item.get("name")),
-            enum_text(STORAGE_KINDS, item.get("kind")),
+            text(item.get("layer"))
+            if item.get("layer") in {"partition", "device-mapper", "md", "virtual"}
+            else enum_text(STORAGE_KINDS, item.get("kind")),
             bytes_value(item.get("capacity")),
             text(item.get("fs_type")),
             text(item.get("mount_point")),
@@ -733,7 +833,7 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
             "Block devices",
             columns,
             rows,
-            len(useful if useful else devices) - len(shown),
+            len(source) - len(shown),
         )
     ]
     if detailed:
@@ -747,6 +847,12 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
             ("controller_name", "PCI controller"),
             ("numa_node", "NUMA node"),
             ("scheduler", "I/O scheduler"),
+            ("mapper_name", "Mapper name"),
+            ("mapper_uuid", "Mapper UUID"),
+            ("raid_level", "RAID level"),
+            ("raid_state", "RAID state"),
+            ("raid_disks", "RAID members"),
+            ("raid_degraded", "RAID degraded count"),
             ("logical_block_size", "Logical block (bytes)"),
             ("physical_block_size", "Physical block (bytes)"),
             ("minimum_io_size", "Minimum I/O (bytes)"),
@@ -766,6 +872,43 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
         if hardware_rows:
             tables.append(
                 DetailTable("Storage hardware and configuration", ("Device", "Field", "Value"), hardware_rows)
+            )
+    if detailed:
+        relations = tuple(
+            (
+                text(item.get("name")),
+                text(item.get("layer")),
+                text(item.get("parent")),
+                text(item.get("partition_number")),
+                _joined(item.get("slaves")),
+            )
+            for item in shown
+            if item.get("parent") or item.get("slaves") or item.get("mapper_name") or item.get("raid_level")
+        )
+        if relations:
+            tables.append(
+                DetailTable(
+                    "Block topology", ("Device", "Layer", "Partition parent", "Partition", "Lower devices"), relations
+                )
+            )
+        mounts = _mappings(storage.get("mounts"))
+        if mounts:
+            tables.append(
+                DetailTable(
+                    "Mounts (current namespace)",
+                    ("ID", "Device/source", "Filesystem", "Mount point", "FS root", "Read only"),
+                    tuple(
+                        (
+                            text(item.get("mount_id")),
+                            text(item.get("block_device") or item.get("source")),
+                            text(item.get("filesystem")),
+                            text(item.get("path")),
+                            text(item.get("root")),
+                            yes_no(item.get("read_only")),
+                        )
+                        for item in mounts
+                    ),
+                )
             )
     return Card(
         "storage",
@@ -859,6 +1002,7 @@ def build(
     snapshot: Mapping[str, Any],
     compact: bool = False,
     sections: Optional[List[str]] = None,
+    sources: bool = False,
 ) -> DisplayModel:
     """Build a resilient presentation model from a public Sysal JSON snapshot."""
     info = _mapping(snapshot.get("info"))
@@ -894,13 +1038,16 @@ def build(
         "storage": lambda: _storage_card(_mapping(info.get("storage")), detailed),
         "software": lambda: _software_card(_mapping(info.get("software"))),
         "execution": execution_card,
+        "topology": lambda: topology_card(info),
     }
     wanted = (
         tuple(section for section in SECTIONS if section in sections)
         if sections
-        else (SECTIONS[:4] if compact else SECTIONS)
+        else (SECTIONS[:4] if compact else tuple(section for section in SECTIONS if section != "topology"))
     )
     cards = tuple(builders[section]() for section in wanted)
+    if sources:
+        cards = tuple(with_sources(card, _mapping(snapshot.get("meta")), info) for card in cards)
     warnings = tuple(str(item) for item in _items(snapshot.get("warnings")) if item)
     meta = _mapping(snapshot.get("meta"))
     footer_parts = []

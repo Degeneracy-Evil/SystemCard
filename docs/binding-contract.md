@@ -12,12 +12,13 @@ All selected collections include Platform for the card header. Additional flags:
 | --- | --- |
 | system | Platform, Pci |
 | cpu | Cpu, Execution |
-| memory | Memory, Execution |
+| memory | Memory, Execution, Pci |
 | accelerators | Accelerator, Execution, Pci |
 | network | Network, Execution |
 | storage | Storage |
 | software | Software |
 | execution | Execution, Cpu, Accelerator |
+| topology | Cpu, Memory, Network, Storage, Pci |
 
 Execution dependencies preserve resource visibility and cgroup limits. Pci supports
 GPU NUMA association. Domains can share prerequisite readers; selection does not
@@ -66,3 +67,35 @@ controller and block/I/O sizes. Sizes are bytes; network speed is bps and descri
 a reported link, not maximum hardware capability. Older snapshots tolerate missing
 fields. Network/Storage use auxiliary PCI collection inside Sysal; requested flags
 retain their public meaning. RAID device reports describe the exposed logical device.
+
+## Hardware relationships and source observations
+
+`--section topology` displays explicit NUMA/CPU package, PCI attachment, partition,
+block dependency and interface relationships. It is an opt-in view assembled from
+public fields; no relationship is inferred from a device, bank or slot name.
+Memory selection requests PCI to resolve EDAC controller NUMA associations when
+available. EDAC controller indices are independent of CPU and NUMA indices.
+
+Storage includes partitions and device-mapper/md layers, explicit parent/slave
+relationships, and all mountinfo records from the current mount namespace.
+Mounts are associated by exact major/minor and retain decoded paths, filesystem
+root and mount options. Capacity summaries avoid counting partition/virtual layers
+again; hardware RAID still describes the exposed logical disk.
+
+Network capability and firmware fields come from optional read-only ethtool
+queries. Supported, advertised and peer modes are distinct from current link speed.
+Partial query output remains usable; permanent MAC is never substituted from the
+current interface address. Bridge/bond/master/lower/VLAN relationships use explicit
+sysfs/proc records.
+
+Memory reports firmware array ECC/location/maximum capacity separately from EDAC
+controller counters and per-DIMM correction modes. Inventory completeness is only
+known when the firmware reports a slot count; matching this count does not prove
+that firmware describes every physical slot correctly.
+
+`meta.observations` contains hardware source origins and collection status without
+raw payloads. `--sources` appends this information to the selected cards, including
+observed missing-file, permission, unsupported-query, missing-tool and timeout
+reasons. A successful read does not promise that every field was supplied. A missing
+reason remains unknown, especially for older snapshots. No collection auto-elevates
+permissions or changes device settings.

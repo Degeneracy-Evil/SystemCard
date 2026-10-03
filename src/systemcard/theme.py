@@ -13,6 +13,7 @@ SECTION_STYLES: Dict[str, str] = {
     "storage": "yellow",
     "software": "blue",
     "execution": "magenta",
+    "topology": "bright_cyan",
 }
 
 

@@ -1,0 +1,78 @@
+"""Explain collection status without exposing raw payloads or inferring causes."""
+
+from typing import Any, Mapping, Set, Tuple
+
+from systemcard.formatters import UNKNOWN, pci_address
+from systemcard.presentation_types import Card, DetailTable
+from systemcard.schema import integer_or, mapping_items, mapping_value
+
+_FAILURES = {
+    0: "Interface/file not present",
+    1: "Permission denied",
+    2: "Query unsupported",
+    3: "Read/query failed",
+    4: "Optional tool unavailable",
+    5: "Query timed out",
+    6: "Source did not provide a value",
+}
+_STATUSES = {0: "Read succeeded", 1: "Partial result", 2: "Failed", 3: "Not collected"}
+
+
+def _source(origin: str) -> str:
+    if origin.startswith("ethtool/"):
+        return "Driver (ethtool)"
+    if origin.startswith("/sys/class/dmi/"):
+        return "Firmware (DMI)"
+    if origin.startswith("/sys/"):
+        return "Kernel/driver (sysfs)"
+    if origin.startswith("/proc/"):
+        return "Kernel (procfs)"
+    if origin.startswith("udevadm"):
+        return "Firmware via udev"
+    if origin.startswith("lspci"):
+        return "PCI system database"
+    return "System query"
+
+
+def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
+    domains = {card.section}
+    if card.section == "topology":
+        domains = {"cpu", "memory", "network", "storage", "pci"}
+    elif card.section in {"system", "memory", "network", "storage"}:
+        domains.add("pci")
+    references: Set[str] = set()
+    groups = ("network", "storage", "memory") if card.section == "topology" else (card.section,)
+    for group in groups:
+        data = mapping_value(info.get(group))
+        key = "interfaces" if group == "network" else "controllers" if group == "memory" else "devices"
+        references.update(pci_address(item.get("pci_address")) for item in mapping_items(data.get(key)))
+    if card.section == "system":
+        references.update(
+            pci_address(item.get("address"))
+            for item in mapping_items(mapping_value(info.get("pci")).get("devices"))
+            if item.get("physical_slot") or item.get("firmware_label")
+        )
+    references.discard(UNKNOWN)
+    observations = []
+    for item in mapping_items(meta.get("observations")):
+        if item.get("domain") not in domains:
+            continue
+        origin = str(item.get("origin", ""))
+        if item.get("domain") == "pci" and origin.startswith("/sys/bus/pci/devices/"):
+            parts = origin.split("/")
+            if len(parts) < 6 or parts[5] not in references:
+                continue
+        observations.append(item)
+    rows: Tuple[Tuple[str, ...], ...] = tuple(
+        (
+            _source(str(item.get("origin", ""))),
+            str(item.get("origin", "—")),
+            _STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
+            _FAILURES.get(integer_or(item.get("failure"), -1), "—"),
+        )
+        for item in observations
+    )
+    if not rows:
+        rows = (("—", "—", "No source observations in this snapshot", "Reason unknown"),)
+    table = DetailTable("Collection sources", ("Source", "Origin", "Result", "Missing/partial reason"), rows)
+    return Card(card.section, card.title, card.rows, (*card.tables, table))

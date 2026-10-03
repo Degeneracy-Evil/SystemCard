@@ -42,6 +42,7 @@ def parser() -> argparse.ArgumentParser:
         metavar="SECTIONS",
         help="only show the given sections (comma- or colon-separated, repeatable)",
     )
+    result.add_argument("--sources", action="store_true", help="show collection sources and missing-data reasons")
     result.add_argument("--list-sections", action="store_true", help="list available sections and exit")
     result.add_argument("--version", action="version", version=f"systemcard {__version__}")
     return result
@@ -93,5 +94,8 @@ def _display(args: argparse.Namespace, console: Console) -> int:
         console.print(f"[red]SystemCard collection failed:[/] {error}")
         return 1
 
-    render(build(snapshot=normalize_snapshot(snapshot), compact=args.compact, sections=sections), console)
+    render(
+        build(snapshot=normalize_snapshot(snapshot), compact=args.compact, sections=sections, sources=args.sources),
+        console,
+    )
     return 0

@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.13 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.13), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.14 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.14), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -95,3 +95,19 @@ uv run --locked systemcard --section network
 Details come from local kernel, driver and firmware reports. Unreadable fields
 remain unknown; there are no performance benchmarks or model specification guesses.
 CPU process node, IPC and undocumented IMC details are not inferred from model names.
+
+## Hardware topology and sources
+
+```bash
+uv run --locked systemcard --section topology
+uv run --locked systemcard --section network --sources
+uv run --locked systemcard --section memory,storage
+```
+
+The topology view follows explicit NUMA, PCI, partition and interface relationships.
+Storage details include layered block devices and every mount in the current
+namespace. Network details add driver/firmware versions, supported link modes and
+bridge/bond/VLAN relationships. Memory details show available EDAC controllers and
+firmware ECC reports; missing controller associations or inventory completeness
+remain unknown. `--sources` shows collection origins and observed failure reasons;
+a successful query does not mean that the source supplied every field.
