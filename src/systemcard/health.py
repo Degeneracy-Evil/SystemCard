@@ -6,7 +6,7 @@ from systemcard.formatters import text
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
 from systemcard.sensors import sensor_groups, sensor_name
-from systemcard.storage_health import DRIVE_FINDINGS, drive_finding_tables
+from systemcard.storage_health import DRIVE_FINDINGS, HISTORICAL_FINDINGS, drive_finding_tables, query_summary
 
 _SEVERITY = {0: "Information", 1: "Warning", 2: "Critical"}
 _KINDS = {
@@ -33,7 +33,7 @@ def has_findings(info: Mapping[str, Any]) -> bool:
 
 def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
     health = mapping_value(info.get("hardware_health"))
-    alerts = mapping_items(health.get("sensor_alerts"))
+    alerts = sorted(mapping_items(health.get("sensor_alerts")), key=lambda item: -integer_or(item.get("severity"), -1))
     storage = mapping_items(health.get("storage_alerts"))
     memory = mapping_items(health.get("memory_events"))
     tables: List[DetailTable] = []
@@ -88,32 +88,37 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
                 ),
             )
         )
-    if memory and detailed:
-        tables.append(
-            DetailTable(
-                "EDAC historical events (since initialization/reset)",
-                ("Controller", "Corrected", "Uncorrected", "Level", "Evidence"),
-                tuple(
-                    (
-                        text(item.get("controller_index")),
-                        text(item.get("corrected")),
-                        text(item.get("uncorrected")),
-                        _SEVERITY.get(integer_or(item.get("severity"), -1), "Unknown"),
-                        text(item.get("origin")),
-                    )
-                    for item in memory
-                ),
-            )
-        )
     drive_findings = mapping_items(health.get("drive_findings"))
+    current_drives = [
+        item for item in drive_findings if integer_or(item.get("kind"), -1) not in HISTORICAL_FINDINGS | {3}
+    ]
+    estimates = [item for item in drive_findings if integer_or(item.get("kind"), -1) == 3]
+    historical = [item for item in drive_findings if integer_or(item.get("kind"), -1) in HISTORICAL_FINDINGS]
     summaries.extend(
         "{}: {}".format(
             text(item.get("target")), DRIVE_FINDINGS.get(integer_or(item.get("kind"), -1), "Unknown finding")
         )
-        for item in drive_findings
+        for item in sorted(current_drives, key=lambda item: -integer_or(item.get("severity"), -1))
     )
     if detailed:
         tables.extend(drive_finding_tables(health))
+        if memory:
+            tables.append(
+                DetailTable(
+                    "EDAC historical events (since initialization/reset)",
+                    ("Controller", "Corrected", "Uncorrected", "Level", "Evidence"),
+                    tuple(
+                        (
+                            text(item.get("controller_index")),
+                            text(item.get("corrected")),
+                            text(item.get("uncorrected")),
+                            _SEVERITY.get(integer_or(item.get("severity"), -1), "Unknown"),
+                            text(item.get("origin")),
+                        )
+                        for item in memory
+                    ),
+                )
+            )
         coverage = mapping_items(health.get("coverage"))
         tables.append(
             DetailTable(
@@ -132,12 +137,19 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
             )
         )
     rows: Tuple[Tuple[str, str], ...] = (
-        ("Observed sensor findings", str(len(alerts))),
-        ("Reported RAID degradation", str(len(storage))),
-        ("Historical memory events", str(len(memory))),
-        ("Drive findings / historical reports", str(len(drive_findings))),
-        ("Scope", "Only reported evidence; missing data does not establish normal operation"),
+        ("Current findings", str(len(alerts) + len(storage) + len(current_drives))),
+        ("Endurance estimates", str(len(estimates))),
+        ("Historical reports", str(len(memory) + len(historical))),
+        ("Drive queries", query_summary(mapping_value(info.get("storage")))),
+        ("Scope", "Reported evidence only; missing data stays unknown"),
     )
+    if not summaries:
+        summaries.extend(
+            "{}: {}".format(
+                text(item.get("target")), DRIVE_FINDINGS.get(integer_or(item.get("kind"), -1), "Unknown finding")
+            )
+            for item in estimates + historical
+        )
     if summaries:
         rows += (("Findings", "; ".join(summaries[:3]) + ("; more in --section health" if len(summaries) > 3 else "")),)
     return Card("health", "Hardware findings", rows, tuple(tables))

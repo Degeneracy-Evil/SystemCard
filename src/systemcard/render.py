@@ -1,6 +1,6 @@
 """Rich terminal rendering for SystemCard display models."""
 
-from typing import List, Sequence, Tuple, Union
+from typing import Dict, List, Sequence, Tuple, Union
 
 from rich.cells import cell_len
 from rich.console import Console, ConsoleRenderable, Group
@@ -9,7 +9,8 @@ from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
 
-from systemcard.model import Card, DisplayModel
+from systemcard.formatters import UNKNOWN
+from systemcard.presentation_types import Card, DetailTable, DisplayModel
 from systemcard.theme import cell_text, section_style, value_text
 
 CARD_MIN_WIDTH = 54
@@ -41,22 +42,70 @@ def _summary(card: Card, width: int) -> Table:
     )
 
 
+def _visible_columns(detail: DetailTable) -> DetailTable:
+    for row in detail.rows:
+        if len(detail.columns) != len(row):
+            raise ValueError("Detail row does not match table columns")
+    if detail.group_by is not None and not 0 <= detail.group_by < len(detail.columns):
+        raise ValueError("Detail grouping column is out of range")
+    keep = tuple(
+        index
+        for index in range(len(detail.columns))
+        if index == 0
+        or index == detail.group_by
+        or not detail.rows
+        or any(row[index] not in {UNKNOWN, ""} for row in detail.rows)
+    )
+    return DetailTable(
+        detail.title,
+        tuple(detail.columns[index] for index in keep),
+        tuple(tuple(row[index] for index in keep) for row in detail.rows),
+        detail.omitted,
+        keep.index(detail.group_by) if detail.group_by is not None else None,
+    )
+
+
+def _grouped_fields(detail: DetailTable, accent: str, width: int) -> List[ConsoleRenderable]:
+    if detail.group_by is None:
+        return []
+    index = detail.group_by
+    groups: Dict[str, List[Tuple[str, Text]]] = {}
+    for row in detail.rows:
+        values = [(column, value) for number, (column, value) in enumerate(zip(detail.columns, row)) if number != index]
+        # Field/value records have an actual field name in the first remaining cell.
+        fields = (
+            [(values[0][1], cell_text(values[0][1], values[1][1]))]
+            if len(values) == 2 and values[0][0] == "Field"
+            else [(column, cell_text(column, value)) for column, value in values if value not in {UNKNOWN, ""}]
+        )
+        groups.setdefault(row[index], []).extend(fields)
+    result: List[ConsoleRenderable] = []
+    for identity, fields in groups.items():
+        table = _fields(fields, accent, width)
+        table.title = Text(f"{detail.title} · {identity}", style=f"bold {accent}")
+        result.append(table)
+    return result
+
+
 def _details(card: Card, width: int) -> List[ConsoleRenderable]:
     accent = section_style(card.section)
     details: List[ConsoleRenderable] = []
-    for detail in card.tables:
-        for row in detail.rows:
-            if len(detail.columns) != len(row):
-                raise ValueError("Detail row does not match table columns")
+    for original in card.tables:
+        detail = _visible_columns(original)
         column_widths = [
             max(cell_len(column), min(max((cell_len(row[index]) for row in detail.rows), default=0), 24), 8)
             for index, column in enumerate(detail.columns)
         ]
-        if sum(column_widths) + 3 * len(detail.columns) + 1 > width - 4 and detail.rows:
+        if detail.group_by is not None:
+            details.extend(_grouped_fields(detail, accent, width))
+        elif sum(column_widths) + 3 * len(detail.columns) + 1 > width - 4 and detail.rows:
             for index, row in enumerate(detail.rows, start=1):
-                fields = _fields(
-                    [(column, cell_text(column, value)) for column, value in zip(detail.columns, row)], accent, width
-                )
+                values = [
+                    (column, cell_text(column, value))
+                    for column, value in zip(detail.columns, row)
+                    if value not in {UNKNOWN, ""}
+                ]
+                fields = _fields(values, accent, width)
                 fields.title = Text(f"{detail.title} · {index}", style=f"bold {accent}")
                 details.append(fields)
         else:

@@ -16,8 +16,6 @@
 ╭──────────────── CPU ─────────────────╮
 │ Model                                │
 │ Demo CPU                             │
-│ Architecture                         │
-│ x86_64                               │
 │ Topology                             │
 │ 1 packages · 2 cores · 4 logical     │
 │ Process visibility                   │
@@ -28,19 +26,6 @@
 │ 1 nodes                              │
 │ Frequency                            │
 │ base 2.40 GHz                        │
-│ Governor                             │
-│ —                                    │
-│ ISA                                  │
-│ AVX AVX2                             │
-│ Thermal zone maximum                 │
-│ —                                    │
-│             Packages · 1             │
-│ ID      0                            │
-│ Model   Demo CPU                     │
-│ Cores   0                            │
-│ Threads 0                            │
-│ Base    2.40 GHz                     │
-│ Max     —                            │
 ╰──────────────────────────────────────╯
 ╭─────────────── Memory ───────────────╮
 │ Host total                           │
@@ -56,73 +41,33 @@
 │ Configured speed                     │
 │ 3200 MT/s                            │
 │ DIMM population                      │
-│ 0 of 0 slots                         │
+│ No slot reports                      │
+╰──────────────────────────────────────╯
+╭────────────── Storage ───────────────╮
+│ Whole disks                          │
+│ 0                                    │
+│ Disk capacity                        │
+│ —                                    │
+│ Models                               │
+│ —                                    │
+│ Other block devices                  │
+│ 0                                    │
+╰──────────────────────────────────────╯
+╭────────────── Network ───────────────╮
+│ Physical interfaces                  │
+│ 0                                    │
+│ Links up                             │
+│ 0                                    │
+│ Other interfaces                     │
+│ 1                                    │
+│ Unclassified                         │
+│ 1                                    │
 ╰──────────────────────────────────────╯
 ╭──────────── Accelerators ────────────╮
 │ Summary                              │
 │ 1 GPU · 1 MIG instances              │
 │ Process visibility                   │
 │ 1 of 2 devices                       │
-│             Devices · 1              │
-│ ID      0                            │
-│ Kind    GPU                          │
-│ Name    Demo GPU                     │
-│ Memory  80.0 GiB                     │
-│ PCI     —                            │
-│ NUMA    —                            │
-│ Visible No                           │
-│             Devices · 2              │
-│ ID      1                            │
-│ Kind    GPU                          │
-│ Name    Demo MIG 2g (MIG)            │
-│ Memory  20.0 GiB                     │
-│ PCI     —                            │
-│ NUMA    —                            │
-│ Visible Yes                          │
-╰──────────────────────────────────────╯
-╭────────────── Network ───────────────╮
-│ Interfaces                           │
-│ 1 total · 1 up                       │
-│ Process visibility                   │
-│ 1 of 1 interfaces                    │
-│            Interfaces · 1            │
-│ Name      eth0                       │
-│ Link      UP · 10 Gbps               │
-│ Addresses 192.0.2.10                 │
-│ PCI       —                          │
-╰──────────────────────────────────────╯
-╭────────────── Storage ───────────────╮
-│ Devices                              │
-│ 0 physical/mounted · 0 total         │
-│ Raw capacity                         │
-│ 0 B                                  │
-│            Block devices             │
-│ ┏━━━━━┳━━━━━┳━━━━━┳━━━━┳━━━━━┳━━━━━┓ │
-│ ┃     ┃     ┃ Cap ┃    ┃     ┃     ┃ │
-│ ┃ Nam ┃ Kin ┃ aci ┃    ┃ Mou ┃     ┃ │
-│ ┃ e   ┃ d   ┃ ty  ┃ FS ┃ nt  ┃ PCI ┃ │
-│ ┡━━━━━╇━━━━━╇━━━━━╇━━━━╇━━━━━╇━━━━━┩ │
-│ └─────┴─────┴─────┴────┴─────┴─────┘ │
-╰──────────────────────────────────────╯
-╭────────────── Software ──────────────╮
-│ CUDA       — · driver —              │
-│ CUDA home  —                         │
-│ ROCm       6.2.0                     │
-│ ROCm home  /opt/rocm                 │
-│ Level Zero 1.17.0                    │
-│ MPI        — —                       │
-│ RDMA core  —                         │
-│ UCX        —                         │
-│            Toolchain · 1             │
-│ Kind    Compiler                     │
-│ Name    gcc                          │
-│ Version 11.2.0                       │
-│ Path    /usr/bin/gcc                 │
-│            Libraries · 1             │
-│ Name    openblas                     │
-│ Kind    BLAS                         │
-│ Version 0.3.26                       │
-│ Path    /usr/lib                     │
 ╰──────────────────────────────────────╯
 ╭───────── Execution context ──────────╮
 │ Process                              │
@@ -143,6 +88,16 @@
 │ 0                                    │
 │ Visible resources                    │
 │ 2 CPUs · 1 accelerators              │
+╰──────────────────────────────────────╯
+╭────────────── Software ──────────────╮
+│ CUDA       — · driver —              │
+│ CUDA home  —                         │
+│ ROCm       6.2.0                     │
+│ ROCm home  /opt/rocm                 │
+│ Level Zero 1.17.0                    │
+│ MPI        — —                       │
+│ RDMA core  —                         │
+│ UCX        —                         │
 ╰──────────────────────────────────────╯
 ╭────────────── Warnings ──────────────╮
 │ demo: optional DIMM details          │

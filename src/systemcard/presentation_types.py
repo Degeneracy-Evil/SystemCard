@@ -1,7 +1,7 @@
 """Immutable terminal presentation types shared by card builders."""
 
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Optional, Tuple
 
 
 @dataclass(frozen=True)
@@ -10,6 +10,7 @@ class DetailTable:
     columns: Tuple[str, ...]
     rows: Tuple[Tuple[str, ...], ...]
     omitted: int = 0
+    group_by: Optional[int] = None
 
 
 @dataclass(frozen=True)

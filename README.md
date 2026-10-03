@@ -130,3 +130,23 @@ Storage health uses optional `smartctl` / `nvme-cli` read-only reports.
 per-device availability and protocol-specific reports; `--section health`
 separates current warnings, endurance estimates and historical errors.
 Permission failures stay unknown; SystemCard never elevates privileges or changes device settings.
+
+## Hardware overview and details
+
+The default view contains summary cards, with machine, CPU, memory, whole disks
+and physical interfaces first. Device tables, partitions, mounts and complete
+identity fields appear when selecting a section. Whole-disk totals exclude
+partitions and virtual block layers; physical-interface counts use explicit
+kernel identity. Unknown classifications remain visible.
+
+```bash
+uv run --locked systemcard
+uv run --locked systemcard --section cpu,memory
+uv run --locked systemcard --section storage,network
+uv run --locked systemcard --section health
+```
+
+Detailed field tables group properties by device and omit columns with no reports.
+Current findings precede endurance estimates and historical error counters.
+Drive-query permission or tool failures are summarized in storage and health cards;
+use `--sources` for the underlying observations.

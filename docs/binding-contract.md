@@ -144,3 +144,12 @@ is absent for NVMe. No installation, privilege escalation, SMART enabling, self-
 configuration change, media scan or hardware RAID port probing is performed. ATA
 power checks skip standby and unsupported checks; SCSI standby checks depend on
 driver support. Compact collection does not add these device queries.
+
+## Presentation levels
+
+Default output shows summary cards without detail tables; selecting a section
+expands its hardware fields. `--compact` keeps the existing four collection domains
+and optional sensor findings. Presentation ordering does not change Sysal flags.
+DetailTable may declare a grouping column for device field/value records; the
+renderer preserves row order within each device, hides all-missing columns, and
+retains zero and false reports. Native JSON remains unchanged.

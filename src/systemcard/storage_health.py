@@ -1,8 +1,8 @@
 """Display protocol-specific drive reports without interpreting vendor attributes."""
 
-from typing import Any, List, Mapping, Tuple
+from typing import Any, Dict, List, Mapping, Tuple
 
-from systemcard.collection_status import collection_result
+from systemcard.collection_status import READ_FAILURES, collection_result
 from systemcard.formatters import UNKNOWN, temperature, text, yes_no
 from systemcard.presentation_types import DetailTable
 from systemcard.schema import integer_or, integer_value, list_value, mapping_items, mapping_value
@@ -19,6 +19,23 @@ DRIVE_FINDINGS = {
     7: "SCSI historical uncorrected errors",
 }
 HISTORICAL_FINDINGS = {5, 6, 7}
+
+
+def query_summary(storage: Mapping[str, Any]) -> str:
+    reports = mapping_items(storage.get("health"))
+    if not reports:
+        return "No drive query reports"
+    complete = sum(integer_or(report.get("status"), -1) == 0 for report in reports)
+    counts: Dict[str, int] = {}
+    for report in reports:
+        if integer_or(report.get("status"), -1) == 0:
+            continue
+        reason = READ_FAILURES.get(integer_or(report.get("failure"), -1), "Partial/unknown query result")
+        counts[reason] = counts.get(reason, 0) + 1
+    summary = f"{complete} / {len(reports)} queries complete"
+    if counts:
+        summary += " · " + "; ".join(f"{reason} ({count})" for reason, count in counts.items())
+    return summary
 
 
 def _percent(value: object) -> str:
@@ -122,7 +139,9 @@ def storage_health_tables(storage: Mapping[str, Any], detailed: bool) -> List[De
             )
     if values:
         tables.append(
-            DetailTable("Drive reports and cumulative counters", ("Target", "Field", "Report"), tuple(values))
+            DetailTable(
+                "Drive reports and cumulative counters", ("Target", "Field", "Report"), tuple(values), group_by=0
+            )
         )
     return tables
 
@@ -130,10 +149,12 @@ def storage_health_tables(storage: Mapping[str, Any], detailed: bool) -> List[De
 def drive_finding_tables(health: Mapping[str, Any]) -> List[DetailTable]:
     findings = mapping_items(health.get("drive_findings"))
     tables: List[DetailTable] = []
-    for historical, title in (
-        (False, "Drive findings and endurance estimates"),
-        (True, "Drive historical error reports"),
-    ):
+    groups = (
+        ({0, 1, 2, 4}, "Current drive findings"),
+        ({3}, "Drive endurance estimates"),
+        (HISTORICAL_FINDINGS, "Drive historical error reports"),
+    )
+    for kinds, title in groups:
         rows = tuple(
             (
                 text(finding.get("target")),
@@ -142,8 +163,8 @@ def drive_finding_tables(health: Mapping[str, Any]) -> List[DetailTable]:
                 text(finding.get("attribute_id")),
                 text(finding.get("origin")),
             )
-            for finding in findings
-            if (integer_or(finding.get("kind"), -1) in HISTORICAL_FINDINGS) == historical
+            for finding in sorted(findings, key=lambda item: -integer_or(item.get("severity"), -1))
+            if integer_or(finding.get("kind"), -1) in kinds
         )
         if rows:
             tables.append(DetailTable(title, ("Target", "Level", "Finding", "ATA ID", "Evidence"), rows))
