@@ -15,12 +15,12 @@ All selected collections include Platform for the card header. Additional flags:
 | memory | Memory, Execution, Pci |
 | accelerators | Accelerator, Execution, Pci |
 | network | Network, Execution |
-| storage | Storage |
+| storage | Storage, StorageHealth |
 | software | Software |
 | execution | Execution, Cpu, Accelerator |
 | topology | Cpu, Memory, Network, Storage, Pci |
 | sensors | Sensors |
-| health | Sensors, Memory, Storage, Pci |
+| health | Sensors, Memory, Storage, Pci, StorageHealth |
 
 Execution dependencies preserve resource visibility and cgroup limits. Pci supports
 GPU NUMA association. Domains can share prerequisite readers; selection does not
@@ -122,3 +122,25 @@ EDAC events are cumulative since initialization/reset. No findings does not esta
 normal operation. Default output adds a compact findings card only when findings exist;
 full evidence is available through --section health and --sources. Unsupported or
 unreadable power/fan/EDAC data cannot be replaced by a claim of normal operation.
+
+## Read-only storage health
+
+`storage.health` contains controller/disk reports and explicit block-device associations.
+NVMe queries are controller-wide; counters are not repeated or summed per namespace.
+NVMe counters use exact unsigned decimal strings (up to 128 bits); `temperature` is
+signed milliCelsius, data unit counts are in units of 1000 * 512 bytes, and
+`percentage_used` is a vendor endurance estimate that can exceed 100.
+ATA attributes retain tool-provided normalized values, thresholds, failure period
+and vendor raw display text. SCSI uncorrected counts are historical cumulative values.
+
+`hardware_health.drive_findings` carries typed C++ findings, keeping current flags,
+endurance estimates and historical events separate. SMART overall passed does not
+guarantee a fault-free device. No usable reports means unknown, including permission
+failures, absent tools, unsupported hardware and skipped low-power devices.
+`--section storage --sources` explains individual query outcomes.
+
+Queries use optional smartctl (JSON-capable 7.x), with nvme-cli only when smartctl
+is absent for NVMe. No installation, privilege escalation, SMART enabling, self-test,
+configuration change, media scan or hardware RAID port probing is performed. ATA
+power checks skip standby and unsupported checks; SCSI standby checks depend on
+driver support. Compact collection does not add these device queries.

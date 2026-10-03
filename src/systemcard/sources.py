@@ -2,23 +2,15 @@
 
 from typing import Any, Mapping, Set, Tuple
 
+from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES
 from systemcard.formatters import UNKNOWN, pci_address
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
 
-_FAILURES = {
-    0: "Interface/file not present",
-    1: "Permission denied",
-    2: "Query unsupported",
-    3: "Read/query failed",
-    4: "Optional tool unavailable",
-    5: "Query timed out",
-    6: "Source did not provide a value",
-}
-_STATUSES = {0: "Read succeeded", 1: "Partial result", 2: "Failed", 3: "Not collected"}
-
 
 def _source(origin: str) -> str:
+    if origin.startswith(("smartctl/", "nvme-smart-log/")):
+        return "Device health report"
     if origin.startswith("ethtool/"):
         return "Driver (ethtool)"
     if origin.startswith("/sys/class/dmi/"):
@@ -36,10 +28,12 @@ def _source(origin: str) -> str:
 
 def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
     domains = {card.section}
+    if card.section == "storage":
+        domains.add("storage_health")
     if card.section == "cpu":
         domains.add("sensors")
     if card.section == "health":
-        domains = {"sensors", "memory", "storage", "pci"}
+        domains = {"sensors", "memory", "storage", "storage_health", "pci"}
     elif card.section == "topology":
         domains = {"cpu", "memory", "network", "storage", "pci"}
     elif card.section in {"system", "memory", "network", "storage"}:
@@ -79,8 +73,8 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
         (
             _source(str(item.get("origin", ""))),
             str(item.get("origin", "—")),
-            _STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
-            _FAILURES.get(integer_or(item.get("failure"), -1), "—"),
+            COLLECT_STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
+            READ_FAILURES.get(integer_or(item.get("failure"), -1), "—"),
         )
         for item in observations
     )

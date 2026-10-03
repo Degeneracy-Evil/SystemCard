@@ -37,6 +37,7 @@ from systemcard.schema import (
 )
 from systemcard.sensors import sensors_card
 from systemcard.sources import with_sources
+from systemcard.storage_health import storage_health_tables
 from systemcard.topology import topology_card
 
 ACCELERATOR_KINDS = {0: "GPU", 1: "NPU", 2: "FPGA", 3: "Other"}
@@ -912,6 +913,7 @@ def _storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
                     ),
                 )
             )
+    tables.extend(storage_health_tables(storage, detailed))
     return Card(
         "storage",
         "Storage",

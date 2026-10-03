@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.15 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.15), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.16 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.16), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -124,3 +124,9 @@ Sensor details preserve kernel names, channels, units, limits and reported flags
 Hardware findings distinguish sensor alarms, md RAID degradation and historical EDAC
 counts. Missing evidence remains unknown. Default output adds a concise findings
 summary when findings exist; it never labels the entire machine healthy from their absence.
+
+Storage health uses optional `smartctl` / `nvme-cli` read-only reports.
+`uv run --locked systemcard --section storage --sources --no-color` shows
+per-device availability and protocol-specific reports; `--section health`
+separates current warnings, endurance estimates and historical errors.
+Permission failures stay unknown; SystemCard never elevates privileges or changes device settings.

@@ -6,6 +6,7 @@ from systemcard.formatters import text
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
 from systemcard.sensors import sensor_groups, sensor_name
+from systemcard.storage_health import DRIVE_FINDINGS, drive_finding_tables
 
 _SEVERITY = {0: "Information", 1: "Warning", 2: "Critical"}
 _KINDS = {
@@ -25,7 +26,9 @@ _COVERAGE = {
 
 def has_findings(info: Mapping[str, Any]) -> bool:
     health = mapping_value(info.get("hardware_health"))
-    return any(mapping_items(health.get(key)) for key in ("sensor_alerts", "storage_alerts", "memory_events"))
+    return any(
+        mapping_items(health.get(key)) for key in ("sensor_alerts", "storage_alerts", "memory_events", "drive_findings")
+    )
 
 
 def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
@@ -102,7 +105,15 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
                 ),
             )
         )
+    drive_findings = mapping_items(health.get("drive_findings"))
+    summaries.extend(
+        "{}: {}".format(
+            text(item.get("target")), DRIVE_FINDINGS.get(integer_or(item.get("kind"), -1), "Unknown finding")
+        )
+        for item in drive_findings
+    )
     if detailed:
+        tables.extend(drive_finding_tables(health))
         coverage = mapping_items(health.get("coverage"))
         tables.append(
             DetailTable(
@@ -124,6 +135,7 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
         ("Observed sensor findings", str(len(alerts))),
         ("Reported RAID degradation", str(len(storage))),
         ("Historical memory events", str(len(memory))),
+        ("Drive findings / historical reports", str(len(drive_findings))),
         ("Scope", "Only reported evidence; missing data does not establish normal operation"),
     )
     if summaries:
