@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.14 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.14), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.15 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.15), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -111,3 +111,16 @@ bridge/bond/VLAN relationships. Memory details show available EDAC controllers a
 firmware ECC reports; missing controller associations or inventory completeness
 remain unknown. `--sources` shows collection origins and observed failure reasons;
 a successful query does not mean that the source supplied every field.
+
+## Sensors and hardware findings
+
+```bash
+uv run --locked systemcard --section sensors
+uv run --locked systemcard --section health
+uv run --locked systemcard --section sensors --sources
+```
+
+Sensor details preserve kernel names, channels, units, limits and reported flags.
+Hardware findings distinguish sensor alarms, md RAID degradation and historical EDAC
+counts. Missing evidence remains unknown. Default output adds a concise findings
+summary when findings exist; it never labels the entire machine healthy from their absence.

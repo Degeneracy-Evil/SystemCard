@@ -1,15 +1,15 @@
 ──────────────────────────────────────────────── SystemCard · demo-node ────────────────────────────────────────────────
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮
-│ Host             demo-node                              │  │ Model              Demo CPU                             │
-│ Operating system Demo Linux 1.0                         │  │ Architecture       x86_64                               │
-│ Kernel           5.15.0                                 │  │ Topology           1 packages · 2 cores · 4 logical     │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility 2 of 4 logical CPUs                  │
-│ Hardware         —                                      │  │ CPU quota          1.5 CPUs                             │
-│ Firmware         — · Legacy/unknown                     │  │ NUMA               1 nodes                              │
-│                                                         │  │ Frequency          base 2.40 GHz                        │
-│                                                         │  │ Governor           —                                    │
-│                                                         │  │ ISA                AVX AVX2                             │
-│                                                         │  │ Temperature        —                                    │
+│ Host             demo-node                              │  │ Model                Demo CPU                           │
+│ Operating system Demo Linux 1.0                         │  │ Architecture         x86_64                             │
+│ Kernel           5.15.0                                 │  │ Topology             1 packages · 2 cores · 4 logical   │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility   2 of 4 logical CPUs                │
+│ Hardware         —                                      │  │ CPU quota            1.5 CPUs                           │
+│ Firmware         — · Legacy/unknown                     │  │ NUMA                 1 nodes                            │
+│                                                         │  │ Frequency            base 2.40 GHz                      │
+│                                                         │  │ Governor             —                                  │
+│                                                         │  │ ISA                  AVX AVX2                           │
+│                                                         │  │ Thermal zone maximum —                                  │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Memory ─────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
 │ Host total       64.0 GiB                               │  │ Summary            1 GPU · 1 MIG instances              │

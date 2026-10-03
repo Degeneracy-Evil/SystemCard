@@ -32,7 +32,7 @@
 │ —                                    │
 │ ISA                                  │
 │ AVX AVX2                             │
-│ Temperature                          │
+│ Thermal zone maximum                 │
 │ —                                    │
 │             Packages · 1             │
 │ ID      0                            │

@@ -36,12 +36,22 @@ def _source(origin: str) -> str:
 
 def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
     domains = {card.section}
-    if card.section == "topology":
+    if card.section == "cpu":
+        domains.add("sensors")
+    if card.section == "health":
+        domains = {"sensors", "memory", "storage", "pci"}
+    elif card.section == "topology":
         domains = {"cpu", "memory", "network", "storage", "pci"}
     elif card.section in {"system", "memory", "network", "storage"}:
         domains.add("pci")
     references: Set[str] = set()
-    groups = ("network", "storage", "memory") if card.section == "topology" else (card.section,)
+    groups = (
+        ("network", "storage", "memory")
+        if card.section == "topology"
+        else ("storage", "memory")
+        if card.section == "health"
+        else (card.section,)
+    )
     for group in groups:
         data = mapping_value(info.get(group))
         key = "interfaces" if group == "network" else "controllers" if group == "memory" else "devices"
@@ -58,6 +68,8 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
         if item.get("domain") not in domains:
             continue
         origin = str(item.get("origin", ""))
+        if card.section == "cpu" and item.get("domain") == "sensors" and not origin.startswith("/sys/class/thermal/"):
+            continue
         if item.get("domain") == "pci" and origin.startswith("/sys/bus/pci/devices/"):
             parts = origin.split("/")
             if len(parts) < 6 or parts[5] not in references:

@@ -23,7 +23,7 @@ namespace
         if(scope == "default")
         {
             return Collect::Platform | Collect::Cpu | Collect::Memory | Collect::Accelerator | Collect::Network |
-                   Collect::Storage | Collect::Pci | Collect::Software | Collect::Execution;
+                   Collect::Storage | Collect::Pci | Collect::Software | Collect::Execution | Collect::Sensors;
         }
         if(scope == "basic")
         {
@@ -44,13 +44,15 @@ namespace
             return flags;
         flags = sysal::Collect::Platform; // The card header always includes the host identity.
         using sysal::Collect;
-        static constexpr std::array<std::pair<std::string_view, Collect>, 9> section_flags{{
+        static constexpr std::array<std::pair<std::string_view, Collect>, 11> section_flags{{
             {"system", Collect::Platform | Collect::Pci},
             {"cpu", Collect::Cpu | Collect::Execution},
             {"memory", Collect::Memory | Collect::Execution | Collect::Pci},
             {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Pci},
             {"network", Collect::Network | Collect::Execution},
             {"storage", Collect::Storage},
+            {"sensors", Collect::Sensors},
+            {"health", Collect::Sensors | Collect::Memory | Collect::Storage | Collect::Pci},
             {"topology", Collect::Cpu | Collect::Memory | Collect::Network | Collect::Storage | Collect::Pci},
             {"software", Collect::Software},
             {"execution", Collect::Execution | Collect::Cpu | Collect::Accelerator},

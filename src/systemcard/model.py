@@ -14,6 +14,7 @@ from systemcard.formatters import (
     text,
     yes_no,
 )
+from systemcard.health import has_findings, health_card
 from systemcard.presentation_types import Card as Card
 from systemcard.presentation_types import DetailTable as DetailTable
 from systemcard.presentation_types import DisplayModel as DisplayModel
@@ -34,6 +35,7 @@ from systemcard.schema import (
 from systemcard.schema import (
     mapping_value as _mapping,
 )
+from systemcard.sensors import sensors_card
 from systemcard.sources import with_sources
 from systemcard.topology import topology_card
 
@@ -466,7 +468,7 @@ def _cpu_card(
             ("Frequency", frequency_range),
             ("Governor", text(cpu.get("governor"))),
             ("ISA", isa),
-            ("Temperature", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
+            ("Thermal zone maximum", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
             *hardware_rows,
         ),
         tuple((tables if detailed else tables[:1]) if show_tables else ()),
@@ -1039,13 +1041,21 @@ def build(
         "software": lambda: _software_card(_mapping(info.get("software"))),
         "execution": execution_card,
         "topology": lambda: topology_card(info),
+        "sensors": lambda: sensors_card(info),
+        "health": lambda: health_card(info),
     }
     wanted = (
         tuple(section for section in SECTIONS if section in sections)
         if sections
-        else (SECTIONS[:4] if compact else tuple(section for section in SECTIONS if section != "topology"))
+        else (
+            SECTIONS[:4]
+            if compact
+            else tuple(section for section in SECTIONS if section not in {"topology", "sensors", "health"})
+        )
     )
     cards = tuple(builders[section]() for section in wanted)
+    if sections is None and has_findings(info):
+        cards += (health_card(info, detailed=False),)
     if sources:
         cards = tuple(with_sources(card, _mapping(snapshot.get("meta")), info) for card in cards)
     warnings = tuple(str(item) for item in _items(snapshot.get("warnings")) if item)

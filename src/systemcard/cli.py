@@ -87,7 +87,7 @@ def _display(args: argparse.Namespace, console: Console) -> int:
         requested = (
             sections
             if sections is not None
-            else (["system", "cpu", "memory", "accelerators"] if args.compact else None)
+            else (["system", "cpu", "memory", "accelerators", "sensors"] if args.compact else None)
         )
         snapshot = collect(sections=requested)
     except CollectionError as error:

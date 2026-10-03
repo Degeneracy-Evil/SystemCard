@@ -19,6 +19,8 @@ SECTIONS: Tuple[str, ...] = (
     "software",
     "execution",
     "topology",
+    "sensors",
+    "health",
 )
 
 _INFO_DOMAINS: Tuple[str, ...] = (
@@ -31,6 +33,8 @@ _INFO_DOMAINS: Tuple[str, ...] = (
     "pci",
     "software",
     "execution",
+    "sensors",
+    "hardware_health",
 )
 
 

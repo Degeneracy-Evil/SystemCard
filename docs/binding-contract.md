@@ -19,6 +19,8 @@ All selected collections include Platform for the card header. Additional flags:
 | software | Software |
 | execution | Execution, Cpu, Accelerator |
 | topology | Cpu, Memory, Network, Storage, Pci |
+| sensors | Sensors |
+| health | Sensors, Memory, Storage, Pci |
 
 Execution dependencies preserve resource visibility and cgroup limits. Pci supports
 GPU NUMA association. Domains can share prerequisite readers; selection does not
@@ -99,3 +101,24 @@ observed missing-file, permission, unsupported-query, missing-tool and timeout
 reasons. A successful read does not promise that every field was supplied. A missing
 reason remains unknown, especially for older snapshots. No collection auto-elevates
 permissions or changes device settings.
+
+## Sensors and hardware findings
+
+Default collection now includes Sensors. Sensors selection reads only Platform and
+Sensors; health includes Memory/Storage/Pci dependencies. Compact default collection
+also requests Sensors while retaining compact presentation.
+
+Public sensors contain temperatures (signed millidegrees Celsius), fans (RPM) and
+powers (microwatts). Input and average are separate, and limits/flags remain optional.
+Nonstandard temperature units are marked unsupported. Missing firmware labels and
+associations stay unknown; duplicate-looking chips are distinguished by explicit PCI.
+Legacy CPU thermal zones retain their public schema and are labelled as thermal zones,
+without claiming that their maximum is CPU temperature.
+
+hardware_health contains sensor_alerts, storage_alerts, memory_events and coverage.
+Sysal derives these findings from already collected typed models. Python does no
+threshold comparison or driver-status interpretation. Driver flags may be latched;
+EDAC events are cumulative since initialization/reset. No findings does not establish
+normal operation. Default output adds a compact findings card only when findings exist;
+full evidence is available through --section health and --sources. Unsupported or
+unreadable power/fan/EDAC data cannot be replaced by a claim of normal operation.

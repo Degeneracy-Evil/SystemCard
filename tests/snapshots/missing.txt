@@ -8,16 +8,16 @@
 │ Firmware         — · Legacy/unknown                                          │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
-│ Model              —                                                         │
-│ Architecture       —                                                         │
-│ Topology           0 packages · 0 cores · 0 logical                          │
-│ Process visibility 0 of 0 logical CPUs                                       │
-│ CPU quota          —                                                         │
-│ NUMA               0 nodes                                                   │
-│ Frequency          —                                                         │
-│ Governor           —                                                         │
-│ ISA                —                                                         │
-│ Temperature        —                                                         │
+│ Model                —                                                       │
+│ Architecture         —                                                       │
+│ Topology             0 packages · 0 cores · 0 logical                        │
+│ Process visibility   0 of 0 logical CPUs                                     │
+│ CPU quota            —                                                       │
+│ NUMA                 0 nodes                                                 │
+│ Frequency            —                                                       │
+│ Governor             —                                                       │
+│ ISA                  —                                                       │
+│ Thermal zone maximum —                                                       │
 │                                   Packages                                   │
 │ ┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━┓ │
 │ ┃ ID     ┃ Model       ┃ Cores       ┃ Threads        ┃ Base      ┃ Max    ┃ │
