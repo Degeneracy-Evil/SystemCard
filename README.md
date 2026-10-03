@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.19 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.19), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.20 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.20), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -115,6 +115,12 @@ capacity matching basis, since EDAC labels can be changed by an administrator.
 Missing controller associations or inventory completeness remain unknown.
 `--sources` shows collection origins and observed failure reasons;
 a successful query does not mean that the source supplied every field.
+
+Storage and topology details also show PCI storage controller functions, NVMe
+kernel controllers and SCSI hosts separately. Namespace IDs belong to their NVMe
+subsystem; controller links come from sysfs ancestry or actual multipath links.
+SCSI devices retain H:C:T:L addresses. ATA port numbers are kernel identifiers,
+not enclosure slots; hardware RAID volumes do not expose the physical drive inventory.
 
 ## Sensors and hardware findings
 

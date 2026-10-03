@@ -7,6 +7,7 @@ from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items
+from systemcard.storage_connections import storage_connection_tables
 from systemcard.storage_health import query_summary, storage_health_tables
 
 STORAGE_KINDS = {0: "NVMe", 1: "SSD", 2: "HDD", 3: "Other"}
@@ -90,8 +91,11 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
         tables.append(
             DetailTable("Storage hardware and configuration", ("Device", "Field", "Value"), values, group_by=0)
         )
+    tables.extend(storage_connection_tables(storage, detailed=True))
     if pci is not None:
-        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in disks}))
+        addresses = {pci_address(item.get("pci_address")) for item in disks}
+        addresses.update(pci_address(item.get("pci_address")) for item in mapping_items(storage.get("controllers")))
+        tables.extend(pci_tables(pci, addresses))
     relations = tuple(
         (
             text(item.get("name")),

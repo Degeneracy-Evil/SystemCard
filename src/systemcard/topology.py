@@ -8,6 +8,7 @@ from systemcard.pci import pci_tables
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.rdma import rdma_tables
 from systemcard.schema import integer_value, list_value, mapping_items, mapping_value
+from systemcard.storage_connections import storage_connection_tables
 
 
 def topology_card(info: Mapping[str, Any]) -> Card:
@@ -75,6 +76,7 @@ def topology_card(info: Mapping[str, Any]) -> Card:
             )
         )
     tables.extend(memory_topology_tables(memory))
+    tables.extend(storage_connection_tables(mapping_value(info.get("storage"))))
     tables.extend(pci_tables(mapping_value(info.get("pci"))))
     tables.extend(rdma_tables(mapping_value(info.get("network")), detailed=False))
     blocks_rows: List[Tuple[str, ...]] = []
