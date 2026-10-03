@@ -47,9 +47,9 @@ namespace
         static constexpr std::array<std::pair<std::string_view, Collect>, 11> section_flags{{
             {"system", Collect::Platform | Collect::Pci},
             {"cpu", Collect::Cpu | Collect::Execution},
-            {"memory", Collect::Memory | Collect::Execution | Collect::Pci},
-            {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Pci},
-            {"network", Collect::Network | Collect::Execution},
+            {"memory", Collect::Memory | Collect::Execution | Collect::Cpu | Collect::Pci},
+            {"accelerators", Collect::Accelerator | Collect::Execution | Collect::Cpu | Collect::Pci},
+            {"network", Collect::Network | Collect::Execution | Collect::Cpu},
             {"storage", Collect::Storage | Collect::StorageHealth},
             {"sensors", Collect::Sensors},
             {"health", Collect::Sensors | Collect::Memory | Collect::Storage | Collect::Pci | Collect::StorageHealth},

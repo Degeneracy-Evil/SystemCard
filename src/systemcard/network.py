@@ -1,8 +1,9 @@
 """Network inventory and explicit physical-interface summaries."""
 
-from typing import Any, List, Mapping, Tuple
+from typing import Any, List, Mapping, Optional, Tuple
 
 from systemcard.formatters import UNKNOWN, bit_rate, enum_text, pci_address, text, yes_no
+from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import mapping_items as _mappings
@@ -36,7 +37,7 @@ def _summary(network: Mapping[str, Any], interfaces: List[Mapping[str, Any]]) ->
     return summary
 
 
-def network_card(network: Mapping[str, Any], detailed: bool) -> Card:
+def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mapping[str, Any]] = None) -> Card:
     interfaces = _mappings(network.get("interfaces"))
     if not detailed:
         return Card("network", "Network", _summary(network, interfaces))
@@ -91,6 +92,8 @@ def network_card(network: Mapping[str, Any], detailed: bool) -> Card:
                 "Interface hardware and configuration", ("Interface", "Field", "Value"), hardware_rows, group_by=0
             )
         )
+    if pci is not None:
+        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in interfaces}))
     autoneg = tuple(
         (text(item.get("name")), "Auto-negotiation", yes_no(item.get("autonegotiation")))
         for item in shown

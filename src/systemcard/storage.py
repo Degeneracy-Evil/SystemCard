@@ -1,8 +1,9 @@
 """Whole-disk summaries with separate block layers, mounts and health reports."""
 
-from typing import Any, List, Mapping, Tuple
+from typing import Any, List, Mapping, Optional, Tuple
 
 from systemcard.formatters import UNKNOWN, bytes_value, enum_text, pci_address, text, yes_no
+from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items
@@ -34,7 +35,7 @@ def _devices(title: str, devices: List[Mapping[str, Any]]) -> DetailTable:
     )
 
 
-def storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
+def storage_card(storage: Mapping[str, Any], detailed: bool, pci: Optional[Mapping[str, Any]] = None) -> Card:
     devices = mapping_items(storage.get("devices"))
     disks = [item for item in devices if _whole_disk(item)]
     other = [item for item in devices if not _whole_disk(item)]
@@ -89,6 +90,8 @@ def storage_card(storage: Mapping[str, Any], detailed: bool) -> Card:
         tables.append(
             DetailTable("Storage hardware and configuration", ("Device", "Field", "Value"), values, group_by=0)
         )
+    if pci is not None:
+        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in disks}))
     relations = tuple(
         (
             text(item.get("name")),

@@ -12,9 +12,9 @@ All selected collections include Platform for the card header. Additional flags:
 | --- | --- |
 | system | Platform, Pci |
 | cpu | Cpu, Execution |
-| memory | Memory, Execution, Pci |
-| accelerators | Accelerator, Execution, Pci |
-| network | Network, Execution |
+| memory | Memory, Execution, Cpu, Pci |
+| accelerators | Accelerator, Execution, Cpu, Pci |
+| network | Network, Execution, Cpu |
 | storage | Storage, StorageHealth |
 | software | Software |
 | execution | Execution, Cpu, Accelerator |
@@ -22,7 +22,9 @@ All selected collections include Platform for the card header. Additional flags:
 | sensors | Sensors |
 | health | Sensors, Memory, Storage, Pci, StorageHealth |
 
-Execution dependencies preserve resource visibility and cgroup limits. Pci supports
+Execution dependencies include Cpu so its explicit visible CPU IDs can be checked
+against an actual CPU inventory, including when only network or memory is displayed.
+They preserve resource visibility and cgroup limits. Pci supports
 GPU NUMA association. Domains can share prerequisite readers; selection does not
 promise that no supporting files or optional libraries are accessed.
 
@@ -69,6 +71,20 @@ controller and block/I/O sizes. Sizes are bytes; network speed is bps and descri
 a reported link, not maximum hardware capability. Older snapshots tolerate missing
 fields. Network/Storage use auxiliary PCI collection inside Sysal; requested flags
 retain their public meaning. RAID device reports describe the exposed logical device.
+
+## PCIe connections
+
+Sysal 0.0.17 adds explicit direct upstream addresses, bound PCI driver names,
+PF addresses for VFs, kernel local CPU lists, and maximum/enabled VF counts.
+Network and storage detail views join controllers by exact PCI address, retain
+current and maximum links separately, and follow only reported upstream addresses.
+Paths mark where reports stop, where a device report is missing, or where a cycle
+occurs; they do not claim a complete motherboard topology or application throughput.
+The topology view lists devices with connection, link, slot, or SR-IOV reports;
+the underlying JSON retains the complete PCI inventory.
+Kernel local CPUs are not evidence for filling an unknown NUMA node. Missing
+capability data is unknown, and zero enabled VFs is retained as a valid report.
+No link negotiation difference is reinterpreted as a health finding.
 
 ## Hardware relationships and source observations
 
