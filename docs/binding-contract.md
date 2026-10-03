@@ -88,6 +88,19 @@ No link negotiation difference is reinterpreted as a health finding.
 
 ## Hardware relationships and source observations
 
+Network collection also reports `network.rdma`: sysfs discovery status and RDMA
+devices, with node type, GUIDs, firmware, bound driver, PCI/NUMA, and reported ports.
+Port reports retain logical/physical state, explicit InfiniBand/Ethernet link layer,
+the kernel's complete rate string, optional rate in bps, LIDs, SM fields and the
+capability mask. Ethernet does not prove RoCE or iWARP, and reported rates are not
+application throughput or maximum device capability.
+Backing device interfaces are distinct from explicit port interfaces supplied by
+GID ndev reports; a device with no netdev is retained. Discovery status describes
+class directory enumeration, not completion of every attribute or device health.
+Missing/permission failures remain visible through `--sources`, and old snapshots
+without RDMA reports remain compatible. No fabric probe, performance counter read,
+port modification, or extra software dependency is introduced.
+
 `--section topology` displays explicit NUMA/CPU package, PCI attachment, partition,
 block dependency and interface relationships. It is an opt-in view assembled from
 public fields; no relationship is inferred from a device, bank or slot name.

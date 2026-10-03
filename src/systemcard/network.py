@@ -6,7 +6,9 @@ from systemcard.formatters import UNKNOWN, bit_rate, enum_text, pci_address, tex
 from systemcard.pci import pci_tables
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_types import Card, DetailTable
+from systemcard.rdma import rdma_summary, rdma_tables
 from systemcard.schema import mapping_items as _mappings
+from systemcard.schema import mapping_value
 
 INTERFACE_STATES = {0: "UP", 1: "DOWN", 2: "UNKNOWN"}
 
@@ -34,7 +36,7 @@ def _summary(network: Mapping[str, Any], interfaces: List[Mapping[str, Any]]) ->
     )
     if len(physical) > 4:
         summary += (("More interfaces", f"{len(physical) - 4}; --section network"),)
-    return summary
+    return summary + rdma_summary(network)
 
 
 def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mapping[str, Any]] = None) -> Card:
@@ -62,6 +64,7 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
         for item in shown
     )
     tables: List[DetailTable] = [DetailTable("Interfaces", columns, rows)]
+    tables.extend(rdma_tables(network))
     fields = (
         ("device_name", "Device"),
         ("vendor", "PCI vendor ID"),
@@ -93,7 +96,8 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
             )
         )
     if pci is not None:
-        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in interfaces}))
+        controllers = interfaces + _mappings(mapping_value(network.get("rdma")).get("devices"))
+        tables.extend(pci_tables(pci, {pci_address(item.get("pci_address")) for item in controllers}))
     autoneg = tuple(
         (text(item.get("name")), "Auto-negotiation", yes_no(item.get("autonegotiation")))
         for item in shown
@@ -142,6 +146,7 @@ def network_card(network: Mapping[str, Any], detailed: bool, pci: Optional[Mappi
         (
             ("Interfaces", f"{len(interfaces)} total · {len(up)} up"),
             ("Process visibility", f"{visible} of {len(interfaces)} interfaces"),
+            *rdma_summary(network),
         ),
         tuple(tables),
     )

@@ -26,3 +26,7 @@ finding 类型，不重新判断硬件阈值。权限不足、工具缺失和低
 PCIe 详情由 pci.py 共享构建，network/storage 按精确地址选择控制器及其明确上游。
 拓扑页仅增加有连接、链路、插槽或 SR-IOV 报告的设备，完整 PCI 清单保留在 JSON。
 路径显示采集边界，不把未知上游当作完整主机根连接；未知位宽 255 不显示为 x255。
+
+RDMA 由 rdma.py 格式化公共设备/端口报告；network 摘要追加发现与已报告端口计数，
+状态未知时显示数量。详情与 topology 明确区分 backing device 接口和 GID 端口接口。
+没有 netdev 的 RDMA 设备也保留；PCI 详情和来源关联同时包含这些设备。

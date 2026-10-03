@@ -5,6 +5,7 @@ from typing import Any, List, Mapping, Tuple
 from systemcard.formatters import UNKNOWN, bytes_value, cpu_list, pci_address, text
 from systemcard.pci import pci_tables
 from systemcard.presentation_types import Card, DetailTable
+from systemcard.rdma import rdma_tables
 from systemcard.schema import integer_value, list_value, mapping_items, mapping_value
 
 
@@ -73,6 +74,7 @@ def topology_card(info: Mapping[str, Any]) -> Card:
             )
         )
     tables.extend(pci_tables(mapping_value(info.get("pci"))))
+    tables.extend(rdma_tables(mapping_value(info.get("network")), detailed=False))
     blocks_rows: List[Tuple[str, ...]] = []
     for item in devices:
         if item.get("parent"):

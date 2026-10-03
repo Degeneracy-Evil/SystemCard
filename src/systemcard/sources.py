@@ -50,6 +50,11 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
         data = mapping_value(info.get(group))
         key = "interfaces" if group == "network" else "controllers" if group == "memory" else "devices"
         references.update(pci_address(item.get("pci_address")) for item in mapping_items(data.get(key)))
+        if group == "network":
+            references.update(
+                pci_address(item.get("pci_address"))
+                for item in mapping_items(mapping_value(data.get("rdma")).get("devices"))
+            )
     if card.section == "system":
         references.update(
             pci_address(item.get("address"))
