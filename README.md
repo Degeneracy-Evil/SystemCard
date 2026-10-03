@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.18 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.18), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.19 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.19), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -107,9 +107,13 @@ uv run --locked systemcard --section memory,storage
 The topology view follows explicit NUMA, PCI, partition and interface relationships.
 Storage details include layered block devices and every mount in the current
 namespace. Network details add driver/firmware versions, supported link modes and
-bridge/bond/VLAN relationships. Memory details show available EDAC controllers and
-firmware ECC reports; missing controller associations or inventory completeness
-remain unknown. `--sources` shows collection origins and observed failure reasons;
+bridge/bond/VLAN relationships. Memory details show available EDAC controllers,
+ordered channel/slot locations and firmware ECC reports. EDAC DIMMs and ranks
+remain separate; rank capacity is per rank. Controller layer maxima are indices,
+not population counts. Firmware-to-EDAC associations show their unique label and
+capacity matching basis, since EDAC labels can be changed by an administrator.
+Missing controller associations or inventory completeness remain unknown.
+`--sources` shows collection origins and observed failure reasons;
 a successful query does not mean that the source supplied every field.
 
 ## Sensors and hardware findings

@@ -14,6 +14,7 @@ from systemcard.formatters import (
     yes_no,
 )
 from systemcard.health import has_findings, health_card
+from systemcard.memory_topology import memory_topology_tables
 from systemcard.network import network_card
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_helpers import limited as _limited
@@ -583,33 +584,7 @@ def _memory_card(memory: Mapping[str, Any], detailed: bool, show_tables: bool, c
             ),
         )
     if detailed:
-        controllers = _mappings(memory.get("controllers"))
-        if controllers:
-            tables += (
-                DetailTable(
-                    "EDAC controllers (counters since reset)",
-                    ("ID", "Name", "Capacity", "NUMA", "PCI", "Corrected", "Uncorrected"),
-                    tuple(
-                        (
-                            text(item.get("index")),
-                            text(item.get("name")),
-                            bytes_value(item.get("capacity")),
-                            text(item.get("numa_node")),
-                            pci_address(item.get("pci_address")),
-                            text(item.get("corrected_errors")),
-                            text(item.get("uncorrected_errors")),
-                        )
-                        for item in controllers
-                    ),
-                ),
-            )
-        relations = tuple(
-            (text(item.get("locator")), text(item.get("controller_index")), text(item.get("numa_node")))
-            for item in dimms
-            if item.get("controller_index") is not None
-        )
-        if relations:
-            tables += (DetailTable("DIMM controller placement", ("Slot", "Controller", "NUMA"), relations),)
+        tables += tuple(memory_topology_tables(memory, detailed=True))
     return Card(
         "memory",
         "Memory",

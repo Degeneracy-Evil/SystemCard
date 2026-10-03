@@ -3,6 +3,7 @@
 from typing import Any, List, Mapping, Tuple
 
 from systemcard.formatters import UNKNOWN, bytes_value, cpu_list, pci_address, text
+from systemcard.memory_topology import memory_topology_tables
 from systemcard.pci import pci_tables
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.rdma import rdma_tables
@@ -73,6 +74,7 @@ def topology_card(info: Mapping[str, Any]) -> Card:
                 tuple(attachments),
             )
         )
+    tables.extend(memory_topology_tables(memory))
     tables.extend(pci_tables(mapping_value(info.get("pci"))))
     tables.extend(rdma_tables(mapping_value(info.get("network")), detailed=False))
     blocks_rows: List[Tuple[str, ...]] = []
