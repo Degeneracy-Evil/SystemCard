@@ -2,6 +2,7 @@
 
 from typing import Any, List, Mapping, Tuple
 
+from systemcard.cpu_topology import cpu_topology_tables
 from systemcard.formatters import UNKNOWN, bytes_value, cpu_list, pci_address, text
 from systemcard.memory_topology import memory_topology_tables
 from systemcard.pci import pci_tables
@@ -76,6 +77,7 @@ def topology_card(info: Mapping[str, Any]) -> Card:
                 tuple(attachments),
             )
         )
+    tables.extend(cpu_topology_tables(cpu))
     tables.extend(memory_topology_tables(memory, detailed=True))
     tables.extend(storage_connection_tables(mapping_value(info.get("storage")), detailed=True))
     tables.extend(pci_tables(mapping_value(info.get("pci"))))

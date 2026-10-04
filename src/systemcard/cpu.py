@@ -13,12 +13,8 @@ from systemcard.formatters import (
     text,
     yes_no,
 )
-from systemcard.presentation_helpers import limited as _limited
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.resource_limits import cpu_quota
-from systemcard.schema import (
-    integer_or as _integer,
-)
 from systemcard.schema import (
     integer_value,
     number_value,
@@ -55,7 +51,70 @@ ISA_EXTENSIONS = {
 }
 
 
-def _cpu_hardware_tables(cpu: Mapping[str, Any], logical: List[Mapping[str, Any]], detailed: bool) -> List[DetailTable]:
+def _frequency_configuration(policies: List[Mapping[str, Any]]) -> DetailTable:
+    """Group identical configuration; keep variable current reports as a range."""
+    groups: Dict[
+        Tuple[Optional[int], Optional[int], Optional[int], Optional[int], Optional[int], str, str, str],
+        List[Mapping[str, Any]],
+    ] = {}
+    for policy in policies:
+        configuration = (
+            integer_value(policy.get("hardware_min_frequency")),
+            integer_value(policy.get("hardware_max_frequency")),
+            integer_value(policy.get("scaling_min_frequency")),
+            integer_value(policy.get("scaling_max_frequency")),
+            integer_value(policy.get("base_frequency")),
+            text(policy.get("driver")),
+            text(policy.get("governor")),
+            text(policy.get("energy_performance_preference")),
+        )
+        groups.setdefault(configuration, []).append(policy)
+    rows: List[Tuple[str, ...]] = []
+    for (hw_min, hw_max, policy_min, policy_max, base, driver, governor, preference), members in groups.items():
+        readings = [integer_value(item.get("scaling_current_frequency")) for item in members]
+        known = [value for value in readings if value is not None and value >= 0]
+        reported = UNKNOWN
+        if known:
+            reported = frequency(min(known))
+            if min(known) != max(known):
+                reported += " - " + frequency(max(known))
+            if len(known) != len(members):
+                reported += f" (known {len(known)}/{len(members)})"
+        rows.append(
+            (
+                cpu_list([item.get("index") for item in members]),
+                cpu_list([number for item in members for number in _items(item.get("related_cpus"))]),
+                frequency(hw_min),
+                frequency(hw_max),
+                frequency(policy_min),
+                frequency(policy_max),
+                frequency(base),
+                reported,
+                driver,
+                governor,
+                preference,
+            )
+        )
+    return DetailTable(
+        "Frequency configuration (kernel reports)",
+        (
+            "Policies",
+            "Related CPUs",
+            "HW min",
+            "HW max",
+            "Policy min",
+            "Policy max",
+            "Base",
+            "Reported range",
+            "Driver",
+            "Governor",
+            "Energy preference",
+        ),
+        tuple(rows),
+    )
+
+
+def _cpu_hardware_tables(cpu: Mapping[str, Any], logical: List[Mapping[str, Any]]) -> List[DetailTable]:
     tables: List[DetailTable] = []
     identity_fields = (
         ("family", "Family"),
@@ -88,7 +147,7 @@ def _cpu_hardware_tables(cpu: Mapping[str, Any], logical: List[Mapping[str, Any]
             (cpu_list(ids), label, value) for fields, ids in identities.items() for label, value in fields
         )
         tables.append(DetailTable("Identification", ("CPUs", "Field", "Value"), rows, group_by=0))
-    if detailed and features:
+    if features:
         tables.append(
             DetailTable(
                 "Kernel capabilities",
@@ -96,77 +155,9 @@ def _cpu_hardware_tables(cpu: Mapping[str, Any], logical: List[Mapping[str, Any]
                 tuple((cpu_list(ids), " ".join(flags)) for flags, ids in features.items()),
             )
         )
-    caches = _mappings(cpu.get("caches"))
-    if detailed and any(item.get("shared_cpus") for item in caches):
-        rows = tuple(
-            (
-                f"L{_integer(item.get('level'))}",
-                enum_text(CACHE_TYPES, item.get("type")),
-                text(item.get("cache_id")),
-                bytes_value(item.get("size")),
-                text(item.get("sets")),
-                cpu_list(item.get("shared_cpus")),
-            )
-            for item in caches
-        )
-        tables.append(DetailTable("Cache sharing", ("Level", "Type", "ID", "Size", "Sets", "CPUs"), rows))
     policies = _mappings(cpu.get("frequency_policies"))
     if policies:
-        rows = tuple(
-            (
-                str(item.get("index", "—")),
-                cpu_list(item.get("related_cpus")),
-                frequency(item.get("hardware_min_frequency")),
-                frequency(item.get("hardware_max_frequency")),
-                frequency(item.get("scaling_min_frequency")),
-                frequency(item.get("scaling_max_frequency")),
-                frequency(item.get("scaling_current_frequency")),
-                text(item.get("driver")),
-                text(item.get("governor")),
-            )
-            for item in _limited(policies, detailed, 4)
-        )
-        tables.append(
-            DetailTable(
-                "Frequency policies (kernel reports)",
-                ("Policy", "CPUs", "HW min", "HW max", "Policy min", "Policy max", "Reported", "Driver", "Governor"),
-                rows,
-                omitted=max(0, len(policies) - len(rows)),
-            )
-        )
-        if detailed:
-            rows = tuple(
-                (
-                    str(item.get("index", "—")),
-                    cpu_list(item.get("affected_cpus")),
-                    frequency(item.get("base_frequency")),
-                    frequency(item.get("hardware_current_frequency")),
-                    text(item.get("energy_performance_preference")),
-                )
-                for item in policies
-            )
-            tables.append(
-                DetailTable(
-                    "Frequency policy details",
-                    ("Policy", "Affected CPUs", "Base", "HW reported", "Energy preference"),
-                    rows,
-                )
-            )
-    if detailed and "online_cpu_ids" in cpu:
-        rows = tuple(
-            (
-                str(item.get("id", "—")),
-                str(item.get("package_id", "—")),
-                str(item.get("core_id", "—")),
-                text(item.get("numa_node")),
-                yes_no(item.get("online")),
-                yes_no(item.get("visible_to_current_process")),
-            )
-            for item in logical
-        )
-        tables.append(
-            DetailTable("Logical CPU topology", ("CPU", "Package", "Core", "NUMA", "Online", "Visible"), rows)
-        )
+        tables.append(_frequency_configuration(policies))
     return tables
 
 
@@ -253,7 +244,7 @@ def cpu_card(
     if thermal_rows:
         tables.append(DetailTable("Thermals", ("Sensor", "Zone", "Temperature"), thermal_rows))
     if detailed:
-        tables.extend(_cpu_hardware_tables(cpu, logical, detailed))
+        tables.extend(_cpu_hardware_tables(cpu, logical))
     hardware_rows: List[Tuple[str, str]] = []
     if cpu.get("caches") and all(item.get("shared_cpus") for item in _mappings(cpu.get("caches"))):
         hardware_rows.extend(
@@ -310,6 +301,8 @@ def cpu_card(
         ("Thermal zone maximum", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
         *hardware_rows,
     )
+    if detailed:
+        rows += (("Thread / cache links", "--section topology"),)
     if not detailed:
         primary = {"Model", "Topology", "Process visibility", "CPU quota", "NUMA", "Frequency", "SMT"}
         rows = tuple((label, value) for label, value in rows if label in primary or label.endswith(" cache"))

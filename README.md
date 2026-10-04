@@ -77,7 +77,9 @@ identity, visibility and NUMA dependencies. CPU and memory cards show cgroup lim
 separately from machine resources; GPU cards distinguish physical GPUs and MIG instances.
 CPU summaries include family/model/stepping, microcode, online CPU counts, SMT state
 and the frequency driver. `--section cpu` also shows per-thread kernel capabilities,
-cache sharing, hardware frequency bounds, policy limits and logical CPU topology.
+hardware frequency bounds and policy limits grouped by identical configuration,
+with a range for the kernel’s current reports. `--section topology` retains the
+complete cache sharing, logical CPU and individual frequency policy tables.
 See [launch options](LAUNCH.md) and the [binding contract](docs/binding-contract.md).
 
 ## Hardware inventory

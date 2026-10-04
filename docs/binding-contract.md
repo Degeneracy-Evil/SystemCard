@@ -54,7 +54,11 @@ hardware bounds, policy limits and the kernel's current reports are distinct.
 `scaling_current_frequency` may be a requested or reported value. Cache instances
 include ID, sets and shared CPU IDs; explicit identical instances are deduplicated.
 Missing fields in older snapshots remain unknown. Default CPU output is a summary;
-`--section cpu` includes the full hardware details.
+`--section cpu` groups identical frequency configurations, preserving hardware
+bounds, policy limits, base frequency, driver/governor and energy preference.
+Current kernel reports appear as a range, with incomplete readings labelled.
+`--section topology` retains cache sharing, logical CPU and individual policy
+reports, including affected CPUs and hardware current reports.
 
 ## Ordinary hardware details
 
