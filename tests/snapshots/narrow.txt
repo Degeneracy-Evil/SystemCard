@@ -51,11 +51,11 @@
 ╰──────────────────────────────────────╯
 ╭────────────── Network ───────────────╮
 │ Physical interfaces                  │
-│ 0                                    │
+│ —                                    │
 │ Links up                             │
-│ 0                                    │
+│ —                                    │
 │ Other interfaces                     │
-│ 1                                    │
+│ —                                    │
 │ Unclassified                         │
 │ 1                                    │
 ╰──────────────────────────────────────╯
@@ -123,14 +123,16 @@
 │ No reports available                 │
 ╰──────────────────────────────────────╯
 ╭───────── Hardware findings ──────────╮
-│ Current findings                     │
-│ 0                                    │
+│ Reported current findings            │
+│ —                                    │
 │ Endurance estimates                  │
-│ 0                                    │
+│ —                                    │
 │ Historical reports                   │
-│ 0                                    │
+│ —                                    │
 │ Drive queries                        │
 │ No drive query reports               │
+│ Evidence                             │
+│ —                                    │
 │ Scope                                │
 │ Reported evidence only; missing data │
 │ stays unknown                        │

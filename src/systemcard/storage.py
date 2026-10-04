@@ -18,6 +18,13 @@ def _whole_disk(device: Mapping[str, Any]) -> bool:
     return integer_or(device.get("kind"), 3) in {0, 1, 2} and not device.get("partition_number")
 
 
+def _unclassified(device: Mapping[str, Any]) -> bool:
+    layer = device.get("layer")
+    if isinstance(layer, str) and layer not in {"", "unknown", "other"}:
+        return False
+    return not _whole_disk(device) and not device.get("partition_number") and not device.get("parent")
+
+
 def _devices(title: str, devices: List[Mapping[str, Any]]) -> DetailTable:
     return DetailTable(
         title,
@@ -38,20 +45,30 @@ def _devices(title: str, devices: List[Mapping[str, Any]]) -> DetailTable:
 def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapping[str, Any]] = None) -> Card:
     devices = mapping_items(storage.get("devices"))
     disks = [item for item in devices if _whole_disk(item)]
-    other = [item for item in devices if not _whole_disk(item)]
+    unknown = [item for item in devices if _unclassified(item)]
+    other = [item for item in devices if not _whole_disk(item) and not _unclassified(item)]
     capacities = [integer_value(item.get("capacity")) for item in disks]
     known = [value for value in capacities if value is not None and value >= 0]
     capacity = bytes_value(sum(known)) if known else UNKNOWN
     if known and len(known) != len(disks):
         capacity += f" (known portion: {len(known)}/{len(disks)} disks)"
     confirmed = inventory_known(meta or {}, "storage", storage.get("devices"))
+    disk_count = str(len(disks)) if confirmed else UNKNOWN
+    other_count = str(len(other)) if confirmed else UNKNOWN
+    if unknown:
+        disk_count = f"{len(disks)} (known portion)" if disks else UNKNOWN
+        other_count = f"{len(other)} (known portion)" if other else UNKNOWN
+        if capacity != UNKNOWN:
+            capacity += "; block classification incomplete"
     models = list(dict.fromkeys(str(item["model"]) for item in disks if item.get("model")))
     rows: Tuple[Tuple[str, str], ...] = (
-        ("Whole disks", str(len(disks)) if confirmed else UNKNOWN),
+        ("Whole disks", disk_count),
         ("Disk capacity", capacity),
         ("Models", joined(models[:3], " / ") + ("; more in --section storage" if len(models) > 3 else "")),
-        ("Other block devices", str(len(other)) if confirmed else UNKNOWN),
+        ("Other block devices", other_count),
     )
+    if unknown:
+        rows += (("Unclassified block devices", str(len(unknown))),)
     if not detailed:
         return Card("storage", "Storage", rows)
     tables: List[DetailTable] = [_devices("Whole disks (kernel inventory)", disks)]

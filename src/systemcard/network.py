@@ -4,12 +4,23 @@ from typing import Any, List, Mapping, Optional, Tuple
 
 from systemcard.collection_status import inventory_known
 from systemcard.formatters import UNKNOWN, bit_rate, enum_text, pci_address, text, yes_no
+from systemcard.presentation_helpers import boolean_count
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.rdma import rdma_summary
+from systemcard.schema import integer_value
 from systemcard.schema import mapping_items as _mappings
 
 INTERFACE_STATES = {0: "UP", 1: "DOWN", 2: "UNKNOWN"}
+
+
+def _links_up(interfaces: List[Mapping[str, Any]]) -> str:
+    states = [integer_value(item.get("state")) for item in interfaces]
+    known = [state for state in states if state in {0, 1}]
+    if states and not known:
+        return UNKNOWN
+    count = str(sum(state == 0 for state in known))
+    return count if len(known) == len(states) else count + f" (known {len(known)}/{len(states)})"
 
 
 def _summary(
@@ -21,10 +32,18 @@ def _summary(
         if item.get("interface_kind") == "physical" or (not item.get("interface_kind") and item.get("pci_address"))
     ]
     unclassified = sum(not item.get("interface_kind") and not item.get("pci_address") for item in interfaces)
+    other_count = len(interfaces) - len(physical) - unclassified
+    physical_count = str(len(physical)) if confirmed else UNKNOWN
+    other = str(other_count) if confirmed else UNKNOWN
+    links_up = _links_up(physical) if confirmed else UNKNOWN
+    if unclassified:
+        physical_count = f"{len(physical)} (known portion)" if physical else UNKNOWN
+        other = f"{other_count} (known portion)" if other_count else UNKNOWN
+        links_up = f"{links_up} (known physical interfaces)" if physical and links_up != UNKNOWN else UNKNOWN
     summary: Tuple[Tuple[str, str], ...] = (
-        ("Physical interfaces", str(len(physical)) if confirmed else UNKNOWN),
-        ("Links up", str(sum(item.get("state") == 0 for item in physical)) if confirmed else UNKNOWN),
-        ("Other interfaces", str(len(interfaces) - len(physical)) if confirmed else UNKNOWN),
+        ("Physical interfaces", physical_count),
+        ("Links up", links_up),
+        ("Other interfaces", other),
     )
     if unclassified:
         summary += (("Unclassified", str(unclassified)),)
@@ -45,8 +64,7 @@ def network_card(network: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
     confirmed = inventory_known(meta or {}, "network", network.get("interfaces"))
     if not detailed:
         return Card("network", "Network", _summary(network, interfaces, confirmed))
-    up = [item for item in interfaces if item.get("state") == 0]
-    visible = sum(item.get("visible_to_current_process") is True for item in interfaces)
+    visible = boolean_count(interfaces, "visible_to_current_process")
     shown = interfaces
     columns = ("Name", "State", "Speed", "Addresses", "Hardware")
     rows: Tuple[Tuple[str, ...], ...] = tuple(
@@ -125,8 +143,11 @@ def network_card(network: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
         "network",
         "Network",
         (
-            ("Interfaces", f"{len(interfaces)} observed · {len(up)} up" if confirmed else UNKNOWN),
-            ("Process visibility", f"{visible} of {len(interfaces)} observed interfaces" if confirmed else UNKNOWN),
+            ("Interfaces", f"{len(interfaces)} observed · {_links_up(interfaces)} up" if confirmed else UNKNOWN),
+            (
+                "Process visibility",
+                f"{text(visible)} of {len(interfaces)} observed interfaces" if confirmed else UNKNOWN,
+            ),
             *rdma_summary(network),
         ),
         tuple(tables),

@@ -3,7 +3,7 @@
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
 from systemcard.accelerators import accelerator_card
-from systemcard.collection_status import with_collection_status
+from systemcard.collection_status import inventory_known, with_collection_status
 from systemcard.cpu import cpu_card
 from systemcard.execution import execution_card as _execution_card
 from systemcard.formatters import UNKNOWN, text
@@ -11,6 +11,7 @@ from systemcard.health import health_card
 from systemcard.memory import memory_card
 from systemcard.network import network_card
 from systemcard.platform import system_card
+from systemcard.presentation_helpers import boolean_count
 from systemcard.presentation_types import Card as Card
 from systemcard.presentation_types import DetailTable as DetailTable
 from systemcard.presentation_types import DisplayModel as DisplayModel
@@ -20,7 +21,7 @@ from systemcard.schema import mapping_items as _mappings
 from systemcard.schema import mapping_value as _mapping
 from systemcard.sensors import sensors_card
 from systemcard.software import software_card
-from systemcard.sources import with_sources
+from systemcard.sources import with_source_gaps, with_sources
 from systemcard.storage import storage_card
 from systemcard.topology import topology_card
 
@@ -40,13 +41,17 @@ def build(
     cgroup = _mapping(_mapping(info.get("execution")).get("cgroup"))
 
     def execution_card() -> Card:
-        visible_cpu_count = sum(
-            item.get("visible_to_current_process") is True
-            for item in _mappings(_mapping(info.get("cpu")).get("logical_cpus"))
+        cpu = _mapping(info.get("cpu"))
+        accelerators = _mapping(info.get("accelerators"))
+        visible_cpu_count = (
+            boolean_count(_mappings(cpu.get("logical_cpus")), "visible_to_current_process")
+            if inventory_known(meta, "cpu", cpu.get("logical_cpus"))
+            else None
         )
-        visible_accelerator_count = sum(
-            item.get("visible_to_current_process") is True
-            for item in _mappings(_mapping(info.get("accelerators")).get("devices"))
+        visible_accelerator_count = (
+            boolean_count(_mappings(accelerators.get("devices")), "visible_to_current_process")
+            if inventory_known(meta, "accelerator", accelerators.get("devices"))
+            else None
         )
         return _execution_card(_mapping(info.get("execution")), visible_cpu_count, visible_accelerator_count)
 
@@ -74,7 +79,7 @@ def build(
         if sections
         else (SECTIONS[:4] if compact else SECTIONS)
     )
-    cards = tuple(with_collection_status(builders[section](), meta) for section in wanted)
+    cards = tuple(with_source_gaps(with_collection_status(builders[section](), meta), meta, info) for section in wanted)
     if not detailed:
         cards = tuple(Card(card.section, card.title, card.rows) for card in cards)
     if sources:

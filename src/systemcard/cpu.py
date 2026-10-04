@@ -263,8 +263,8 @@ def cpu_card(
         if values and values != [UNKNOWN]:
             hardware_rows.append((label, " / ".join(values)))
     if "online_cpu_ids" in cpu or "present_cpu_ids" in cpu:
-        online = str(len(_items(cpu["online_cpu_ids"]))) if "online_cpu_ids" in cpu else UNKNOWN
-        present = str(len(_items(cpu["present_cpu_ids"]))) if "present_cpu_ids" in cpu else UNKNOWN
+        online = str(len(_items(cpu["online_cpu_ids"]))) if isinstance(cpu.get("online_cpu_ids"), list) else UNKNOWN
+        present = str(len(_items(cpu["present_cpu_ids"]))) if isinstance(cpu.get("present_cpu_ids"), list) else UNKNOWN
         hardware_rows.append(("CPU state", f"{online} online · {present} present"))
     if "smt_active" in cpu or cpu.get("smt_control"):
         active = cpu.get("smt_active")

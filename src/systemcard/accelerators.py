@@ -11,6 +11,7 @@ from systemcard.formatters import (
     text,
     yes_no,
 )
+from systemcard.presentation_helpers import boolean_count
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import (
     mapping_items as _mappings,
@@ -24,7 +25,7 @@ def accelerator_card(
 ) -> Card:
     devices = _mappings(accelerators.get("devices"))
     confirmed = inventory_known(meta or {}, "accelerator", accelerators.get("devices"))
-    visible = sum(item.get("visible_to_current_process") is True for item in devices)
+    visible = boolean_count(devices, "visible_to_current_process")
     physical = [item for item in devices if not item.get("parent_uuid")]
     kinds = Counter(enum_text(ACCELERATOR_KINDS, item.get("kind")) for item in physical)
     breakdown = " · ".join(f"{count} {kind}" for kind, count in kinds.items()) or (
@@ -54,7 +55,7 @@ def accelerator_card(
         "Accelerators",
         (
             ("Summary", breakdown),
-            ("Process visibility", f"{visible} of {len(devices)} observed devices" if confirmed else UNKNOWN),
+            ("Process visibility", f"{text(visible)} of {len(devices)} observed devices" if confirmed else UNKNOWN),
         ),
         tables,
     )

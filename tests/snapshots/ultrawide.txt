@@ -9,9 +9,9 @@
 │                                                         │  │                                                         │  │ DIMM population  —                                     │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭───────────────────── Accelerators ──────────────────────╮  ╭──────────────────────── Network ────────────────────────╮  ╭─────────────────────── Storage ────────────────────────╮
-│ Summary            1 GPU · 1 MIG instances              │  │ Physical interfaces 0                                   │  │ Whole disks         —                                  │
-│ Process visibility 1 of 2 observed devices              │  │ Links up            0                                   │  │ Disk capacity       —                                  │
-│                                                         │  │ Other interfaces    1                                   │  │ Models              —                                  │
+│ Summary            1 GPU · 1 MIG instances              │  │ Physical interfaces —                                   │  │ Whole disks         —                                  │
+│ Process visibility 1 of 2 observed devices              │  │ Links up            —                                   │  │ Disk capacity       —                                  │
+│                                                         │  │ Other interfaces    —                                   │  │ Models              —                                  │
 │                                                         │  │ Unclassified        1                                   │  │ Other block devices —                                  │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭─────────────────────── Software ────────────────────────╮  ╭─────────────────── Execution context ───────────────────╮  ╭────────────────── Hardware topology ───────────────────╮
@@ -28,12 +28,13 @@
 │ UCX        —                                            │  │                                                         │  │                                                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭─────────────────── Hardware sensors ────────────────────╮  ╭─────────────────── Hardware findings ───────────────────╮
-│ Temperatures No reports available                       │  │ Current findings    0                                   │
-│ Fans         No reports available                       │  │ Endurance estimates 0                                   │
-│ Power        No reports available                       │  │ Historical reports  0                                   │
-│                                                         │  │ Drive queries       No drive query reports              │
-│                                                         │  │ Scope               Reported evidence only; missing     │
-│                                                         │  │                     data stays unknown                  │
+│ Temperatures No reports available                       │  │ Reported current findings —                             │
+│ Fans         No reports available                       │  │ Endurance estimates       —                             │
+│ Power        No reports available                       │  │ Historical reports        —                             │
+│                                                         │  │ Drive queries             No drive query reports        │
+│                                                         │  │ Evidence                  —                             │
+│                                                         │  │ Scope                     Reported evidence only;       │
+│                                                         │  │                           missing data stays unknown    │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────────────────────────────────────────────────────── Warnings ────────────────────────────────────────────────────────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                                                                                                                          │

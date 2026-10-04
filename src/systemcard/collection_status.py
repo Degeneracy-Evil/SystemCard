@@ -3,7 +3,7 @@
 from typing import Any, Mapping
 
 from systemcard.presentation_types import Card
-from systemcard.schema import integer_or, list_value
+from systemcard.schema import integer_or, list_value, mapping_items
 
 READ_FAILURES = {
     0: "Interface/file not present",
@@ -21,14 +21,23 @@ COLLECT_STATUSES = {0: "Read succeeded", 1: "Partial result", 2: "Failed", 3: "N
 def collection_result(report: Mapping[str, Any]) -> str:
     status = COLLECT_STATUSES.get(integer_or(report.get("status"), -1), "Unknown status")
     reason = READ_FAILURES.get(integer_or(report.get("failure"), -1))
-    return status if reason is None else f"{status}: {reason}"
+    if reason is not None:
+        return f"{status}: {reason}"
+    return status if integer_or(report.get("status"), -1) == 0 else status + "; reason unknown"
 
 
 def inventory_known(meta: Mapping[str, Any], domain: str, entries: object) -> bool:
     """An empty inventory needs a successful collector report to mean zero."""
     if not isinstance(entries, list) or domain in list_value(meta.get("failed_collectors")):
         return False
-    return bool(list_value(entries)) or domain in list_value(meta.get("succeeded_collectors"))
+    if entries:
+        return True
+    if any(
+        item.get("domain") == domain and integer_or(item.get("status"), -1) != 0
+        for item in mapping_items(meta.get("observations"))
+    ):
+        return False
+    return domain in list_value(meta.get("succeeded_collectors"))
 
 
 def collector_domain(section: str) -> str:

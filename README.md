@@ -116,8 +116,9 @@ remain separate; rank capacity is per rank. Controller layer maxima are indices,
 not population counts. Firmware-to-EDAC associations show their unique label and
 capacity matching basis, since EDAC labels can be changed by an administrator.
 Missing controller associations or inventory completeness remain unknown.
-`--sources` shows collection origins and observed failure reasons;
-a successful query does not mean that the source supplied every field.
+Summaries show relevant missing/partial source counts; `--sources` expands their
+origins and observed failure reasons. Optional missing interfaces do not by themselves
+indicate failed hardware; a successful query does not mean that the source supplied every field.
 
 Topology details show PCI storage controller functions, NVMe
 kernel controllers and SCSI hosts separately. Namespace IDs belong to their NVMe

@@ -7,13 +7,11 @@ from systemcard.formatters import (
     bytes_value,
     text,
 )
+from systemcard.presentation_helpers import boolean_count
 from systemcard.presentation_helpers import joined as _joined
 from systemcard.presentation_helpers import limited as _limited
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.resource_limits import memory_limit
-from systemcard.schema import (
-    integer_or as _integer,
-)
 from systemcard.schema import (
     integer_value,
     number_value,
@@ -28,6 +26,12 @@ def memory_card(memory: Mapping[str, Any], detailed: bool, cgroup: Mapping[str, 
     available = number_value(memory.get("available_memory"))
     used = total - available if total is not None and available is not None else None
     dimms = _mappings(memory.get("dimms"))
+    population = integer_value(memory.get("populated_dimms"))
+    if population is None:
+        population = boolean_count(dimms, "present") if dimms else None
+    entries = integer_value(memory.get("dimm_count"))
+    if entries is None:
+        entries = len(dimms) if dimms else None
     populated = [item for item in dimms if item.get("present") is True]
     shown = _limited(populated, detailed, 8)
     dimm_rows = tuple(
@@ -156,8 +160,8 @@ def memory_card(memory: Mapping[str, Any], detailed: bool, cgroup: Mapping[str, 
             ),
             (
                 "DIMM population",
-                f"{_integer(memory.get('populated_dimms'), len(populated))} of {_integer(memory.get('dimm_count'), len(dimms))} observed entries"
-                if dimms
+                f"{text(population if population is not None and population >= 0 else None)} of {text(entries if entries is not None and entries >= 0 else None)} observed entries"
+                if entries is not None
                 else UNKNOWN,
             ),
             *inventory_rows,

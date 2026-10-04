@@ -1,8 +1,9 @@
 """Present C++ hardware findings, keeping current and historical evidence separate."""
 
-from typing import Any, List, Mapping, Tuple
+from typing import Any, List, Mapping, Optional, Tuple
 
-from systemcard.formatters import text
+from systemcard.formatters import UNKNOWN, text
+from systemcard.presentation_helpers import reported_count
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, mapping_items, mapping_value
 from systemcard.sensors import sensor_groups, sensor_name
@@ -28,6 +29,19 @@ _COVERAGE = {
     2: "Partial evidence",
     3: "Evidence available (not a completeness guarantee)",
 }
+
+
+def _reports(health: Mapping[str, Any], key: str, domain: str) -> Optional[List[Mapping[str, Any]]]:
+    """An empty findings list needs usable evidence before it can mean zero."""
+    if not isinstance(health.get(key), list):
+        return None
+    reports = mapping_items(health.get(key))
+    if reports or any(
+        item.get("domain") == domain and integer_or(item.get("status"), -1) in {2, 3}
+        for item in mapping_items(health.get("coverage"))
+    ):
+        return reports
+    return None
 
 
 def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
@@ -136,11 +150,49 @@ def health_card(info: Mapping[str, Any], detailed: bool = True) -> Card:
                 or (("—", "No coverage reports in this snapshot", "—", "—"),),
             )
         )
+    coverage = mapping_items(health.get("coverage"))
+    evidence = (
+        "; ".join(
+            "{}: {}".format(
+                text(item.get("domain")),
+                {0: "Not requested", 1: "Unavailable", 2: "Partial", 3: "Available"}.get(
+                    integer_or(item.get("status"), -1), "Unknown"
+                ),
+            )
+            for item in coverage
+        )
+        or UNKNOWN
+    )
+    partial_domains = {
+        item.get("domain")
+        for item in coverage
+        if isinstance(item.get("domain"), str) and integer_or(item.get("status"), -1) == 2
+    }
+    drives_present = _reports(health, "drive_findings", "storage_health") is not None
     rows: Tuple[Tuple[str, str], ...] = (
-        ("Current findings", str(len(alerts) + len(storage) + len(current_drives))),
-        ("Endurance estimates", str(len(estimates))),
-        ("Historical reports", str(len(memory) + len(historical))),
+        (
+            "Reported current findings",
+            reported_count(
+                _reports(health, "sensor_alerts", "sensors"),
+                _reports(health, "storage_alerts", "md"),
+                current_drives if drives_present else None,
+                partial=bool(partial_domains & {"sensors", "md", "storage_health"}),
+            ),
+        ),
+        (
+            "Endurance estimates",
+            reported_count(estimates if drives_present else None, partial="storage_health" in partial_domains),
+        ),
+        (
+            "Historical reports",
+            reported_count(
+                _reports(health, "memory_events", "edac"),
+                historical if drives_present else None,
+                partial=bool(partial_domains & {"edac", "storage_health"}),
+            ),
+        ),
         ("Drive queries", query_summary(mapping_value(info.get("storage")))),
+        ("Evidence", evidence),
         ("Scope", "Reported evidence only; missing data stays unknown"),
     )
     if not summaries:

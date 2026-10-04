@@ -30,7 +30,7 @@ def query_summary(storage: Mapping[str, Any]) -> str:
     for report in reports:
         if integer_or(report.get("status"), -1) == 0:
             continue
-        reason = READ_FAILURES.get(integer_or(report.get("failure"), -1), "Partial/unknown query result")
+        reason = READ_FAILURES.get(integer_or(report.get("failure"), -1), collection_result(report))
         counts[reason] = counts.get(reason, 0) + 1
     summary = f"{complete} / {len(reports)} queries complete"
     if counts:

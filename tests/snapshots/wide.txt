@@ -17,9 +17,9 @@
 │ DIMM population  —                                      │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Network ────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
-│ Physical interfaces 0                                   │  │ Whole disks         —                                   │
-│ Links up            0                                   │  │ Disk capacity       —                                   │
-│ Other interfaces    1                                   │  │ Models              —                                   │
+│ Physical interfaces —                                   │  │ Whole disks         —                                   │
+│ Links up            —                                   │  │ Disk capacity       —                                   │
+│ Other interfaces    —                                   │  │ Models              —                                   │
 │ Unclassified        1                                   │  │ Other block devices —                                   │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭─────────────────────── Software ────────────────────────╮  ╭─────────────────── Execution context ───────────────────╮
@@ -43,12 +43,13 @@
 │ Details                --section topology               │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭─────────────────── Hardware findings ───────────────────╮
-│ Current findings    0                                   │
-│ Endurance estimates 0                                   │
-│ Historical reports  0                                   │
-│ Drive queries       No drive query reports              │
-│ Scope               Reported evidence only; missing     │
-│                     data stays unknown                  │
+│ Reported current findings —                             │
+│ Endurance estimates       —                             │
+│ Historical reports        —                             │
+│ Drive queries             No drive query reports        │
+│ Evidence                  —                             │
+│ Scope                     Reported evidence only;       │
+│                           missing data stays unknown    │
 ╰─────────────────────────────────────────────────────────╯
 ╭────────────────────────────────────────────────────── Warnings ──────────────────────────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                                                              │

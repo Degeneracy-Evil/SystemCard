@@ -1,6 +1,6 @@
 """Explain collection status without exposing raw payloads or inferring causes."""
 
-from typing import Any, Mapping, Set, Tuple
+from typing import Any, Dict, List, Mapping, Set, Tuple
 
 from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES, collector_domain
 from systemcard.formatters import UNKNOWN, pci_address
@@ -26,7 +26,7 @@ def _source(origin: str) -> str:
     return "System query"
 
 
-def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
+def _observations(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> List[Mapping[str, Any]]:
     domains = {collector_domain(card.section)}
     if card.section == "cpu":
         domains.add("sensors")
@@ -75,12 +75,40 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
             if len(parts) < 6 or parts[5] not in references:
                 continue
         observations.append(item)
+    return observations
+
+
+def with_source_gaps(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
+    """Summarize actual source gaps without treating every missing file as a failed domain."""
+    counts: Dict[str, int] = {}
+    for item in _observations(card, meta, info):
+        status = integer_or(item.get("status"), -1)
+        if status == 0:
+            continue
+        reason = READ_FAILURES.get(integer_or(item.get("failure"), -1))
+        label = reason or COLLECT_STATUSES.get(status, "Unknown source status") + " (reason unknown)"
+        counts[label] = counts.get(label, 0) + 1
+    if not counts:
+        return card
+    reasons = list(counts.items())
+    summary = "; ".join(f"{label} ({count})" for label, count in reasons[:3])
+    if len(reasons) > 3:
+        summary += f"; {len(reasons) - 3} other reasons"
+    summary += "; --sources for details"
+    return Card(card.section, card.title, (*card.rows, ("Source gaps", summary)), card.tables)
+
+
+def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
+    observations = _observations(card, meta, info)
     rows: Tuple[Tuple[str, ...], ...] = tuple(
         (
             _source(str(item.get("origin", ""))),
             str(item.get("origin", "—")),
             COLLECT_STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
-            READ_FAILURES.get(integer_or(item.get("failure"), -1), "—"),
+            READ_FAILURES.get(
+                integer_or(item.get("failure"), -1),
+                UNKNOWN if integer_or(item.get("status"), -1) == 0 else "Reason unknown",
+            ),
         )
         for item in observations
     )

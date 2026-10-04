@@ -89,13 +89,13 @@ def _display(args: argparse.Namespace, console: Console) -> int:
             if sections is not None
             else (["system", "cpu", "memory", "accelerators"] if args.compact else None)
         )
-        snapshot = collect(sections=requested)
-    except CollectionError as error:
+        snapshot = normalize_snapshot(collect(sections=requested))
+    except (CollectionError, ValueError, TypeError) as error:
         console.print(f"[red]SystemCard collection failed:[/] {error}")
         return 1
 
     render(
-        build(snapshot=normalize_snapshot(snapshot), compact=args.compact, sections=sections, sources=args.sources),
+        build(snapshot=snapshot, compact=args.compact, sections=sections, sources=args.sources),
         console,
     )
     return 0

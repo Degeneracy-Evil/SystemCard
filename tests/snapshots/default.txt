@@ -29,9 +29,9 @@
 │ Process visibility 1 of 2 observed devices                                   │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Network ───────────────────────────────────╮
-│ Physical interfaces 0                                                        │
-│ Links up            0                                                        │
-│ Other interfaces    1                                                        │
+│ Physical interfaces —                                                        │
+│ Links up            —                                                        │
+│ Other interfaces    —                                                        │
 │ Unclassified        1                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
@@ -77,11 +77,12 @@
 │ Power        No reports available                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Hardware findings ──────────────────────────────╮
-│ Current findings    0                                                        │
-│ Endurance estimates 0                                                        │
-│ Historical reports  0                                                        │
-│ Drive queries       No drive query reports                                   │
-│ Scope               Reported evidence only; missing data stays unknown       │
+│ Reported current findings —                                                  │
+│ Endurance estimates       —                                                  │
+│ Historical reports        —                                                  │
+│ Drive queries             No drive query reports                             │
+│ Evidence                  —                                                  │
+│ Scope                     Reported evidence only; missing data stays unknown │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Warnings ──────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                      │

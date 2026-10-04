@@ -211,3 +211,23 @@ and overflow; signed temperatures remain signed.
 
 Domain modules build cards; model.py selects and composes them. resource_limits.py
 shares cgroup formatting. The binding and rendering layers keep their existing roles.
+
+## Missing data and partial evidence
+
+Missing per-device visibility flags remain unknown in accelerator, network and
+execution summaries. Unknown link states are excluded from known-state counts;
+partial counts identify the known portion. Unclassified devices are kept separate
+from physical/whole-disk and other devices. Empty inventories with unavailable or
+partial source observations remain unknown even if the domain produced a model.
+
+Empty health findings require usable C++ coverage evidence before they can mean
+zero reports. Missing evidence yields unknown; incomplete sums are labelled as
+known portions. The default health card summarizes coverage independently of the
+number of findings. Zero reported findings never establishes complete health.
+
+Each card summarizes relevant unsuccessful source observations as Source gaps.
+These are source reports, including optional interfaces, rather than a declaration
+that the domain or hardware failed. --sources uses the same selection and expands
+the origins and outcomes. Unknown failure reasons are explicitly marked; no cause
+is inferred from a missing value. Invalid top-level native snapshots produce a
+concise collection error instead of a normalization traceback.

@@ -61,7 +61,7 @@
 │ Memory current    —                                                          │
 │ CPU set           —                                                          │
 │ Memory nodes      —                                                          │
-│ Visible resources 0 CPUs · 0 accelerators                                    │
+│ Visible resources — CPUs · — accelerators                                    │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Hardware topology ──────────────────────────────╮
 │ NUMA domains           —                                                     │
@@ -76,9 +76,10 @@
 │ Power        No reports available                                            │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Hardware findings ──────────────────────────────╮
-│ Current findings    0                                                        │
-│ Endurance estimates 0                                                        │
-│ Historical reports  0                                                        │
-│ Drive queries       No drive query reports                                   │
-│ Scope               Reported evidence only; missing data stays unknown       │
+│ Reported current findings —                                                  │
+│ Endurance estimates       —                                                  │
+│ Historical reports        —                                                  │
+│ Drive queries             No drive query reports                             │
+│ Evidence                  —                                                  │
+│ Scope                     Reported evidence only; missing data stays unknown │
 ╰──────────────────────────────────────────────────────────────────────────────╯

@@ -48,7 +48,7 @@ def system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: b
     )
     arch = text(architecture.get("name"))
     bits = integer_value(architecture.get("bits"))
-    if bits is not None:
+    if bits is not None and bits > 0:
         arch = f"{arch} ({bits}-bit, {text(architecture.get('byte_order'))}-endian)"
     rows: List[Tuple[str, str]] = [
         ("Host", text(host.get("hostname"))),
