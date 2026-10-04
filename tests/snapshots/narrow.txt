@@ -43,15 +43,11 @@
 │ DIMM population                      │
 │ —                                    │
 ╰──────────────────────────────────────╯
-╭────────────── Storage ───────────────╮
-│ Whole disks                          │
-│ —                                    │
-│ Disk capacity                        │
-│ —                                    │
-│ Models                               │
-│ —                                    │
-│ Other block devices                  │
-│ —                                    │
+╭──────────── Accelerators ────────────╮
+│ Summary                              │
+│ 1 GPU · 1 MIG instances              │
+│ Process visibility                   │
+│ 1 of 2 observed devices              │
 ╰──────────────────────────────────────╯
 ╭────────────── Network ───────────────╮
 │ Physical interfaces                  │
@@ -63,11 +59,28 @@
 │ Unclassified                         │
 │ 1                                    │
 ╰──────────────────────────────────────╯
-╭──────────── Accelerators ────────────╮
-│ Summary                              │
-│ 1 GPU · 1 MIG instances              │
-│ Process visibility                   │
-│ 1 of 2 observed devices              │
+╭────────────── Storage ───────────────╮
+│ Whole disks                          │
+│ —                                    │
+│ Disk capacity                        │
+│ —                                    │
+│ Models                               │
+│ —                                    │
+│ Other block devices                  │
+│ —                                    │
+╰──────────────────────────────────────╯
+╭────────────── Software ──────────────╮
+│ Compilers  gcc 11.2.0                │
+│ Runtimes   —                         │
+│ Drivers    —                         │
+│ CUDA       — · driver —              │
+│ CUDA home  —                         │
+│ ROCm       6.2.0                     │
+│ ROCm home  /opt/rocm                 │
+│ Level Zero 1.17.0                    │
+│ MPI        — —                       │
+│ RDMA core  —                         │
+│ UCX        —                         │
 ╰──────────────────────────────────────╯
 ╭───────── Execution context ──────────╮
 │ Process                              │
@@ -88,6 +101,39 @@
 │ 0                                    │
 │ Visible resources                    │
 │ 2 CPUs · 1 accelerators              │
+╰──────────────────────────────────────╯
+╭───────── Hardware topology ──────────╮
+│ NUMA domains                         │
+│ —                                    │
+│ PCI attachments                      │
+│ —                                    │
+│ Block dependencies                   │
+│ —                                    │
+│ Interface dependencies               │
+│ —                                    │
+│ Details                              │
+│ --section topology                   │
+╰──────────────────────────────────────╯
+╭────────── Hardware sensors ──────────╮
+│ Temperatures                         │
+│ No reports available                 │
+│ Fans                                 │
+│ No reports available                 │
+│ Power                                │
+│ No reports available                 │
+╰──────────────────────────────────────╯
+╭───────── Hardware findings ──────────╮
+│ Current findings                     │
+│ 0                                    │
+│ Endurance estimates                  │
+│ 0                                    │
+│ Historical reports                   │
+│ 0                                    │
+│ Drive queries                        │
+│ No drive query reports               │
+│ Scope                                │
+│ Reported evidence only; missing data │
+│ stays unknown                        │
 ╰──────────────────────────────────────╯
 ╭────────────── Warnings ──────────────╮
 │ demo: optional DIMM details          │

@@ -23,7 +23,8 @@ namespace
         if(scope == "default")
         {
             return Collect::Platform | Collect::Cpu | Collect::Memory | Collect::Accelerator | Collect::Network |
-                   Collect::Storage | Collect::Pci | Collect::Execution;
+                   Collect::Storage | Collect::Pci | Collect::Software | Collect::Execution | Collect::Sensors |
+                   Collect::StorageHealth;
         }
         if(scope == "basic")
         {

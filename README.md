@@ -84,8 +84,8 @@ See [launch options](LAUNCH.md) and the [binding contract](docs/binding-contract
 
 ## Hardware inventory
 
-Default output summarizes CPU, machine/motherboard/chassis, memory, storage and
-network information. Select a section to see the identities and configuration:
+Default output shows every section as a summary, including software, sensors,
+hardware findings and topology. Select a section to see the identities and configuration:
 
 ```bash
 uv run --locked systemcard --section system
@@ -135,8 +135,9 @@ uv run --locked systemcard --section sensors --sources
 
 Sensor details preserve kernel names, channels, units, limits and reported flags.
 Hardware findings distinguish sensor alarms, md RAID degradation and historical EDAC
-counts. Missing evidence remains unknown. Findings appear in the explicit health
-view; their absence does not establish that the entire machine is healthy.
+counts. Missing evidence remains unknown. Default output includes a findings summary;
+selecting health expands the evidence. Their absence does not establish that the
+entire machine is healthy.
 
 Storage health uses optional `smartctl` / `nvme-cli` read-only reports.
 `uv run --locked systemcard --section health --sources --no-color` shows
@@ -146,9 +147,9 @@ Permission failures stay unknown; SystemCard never elevates privileges or change
 
 ## Hardware overview and details
 
-The default view contains summary cards, with machine, CPU, memory, whole disks
-and physical interfaces first. Software, sensors and drive health queries require
-an explicit section. Ordinary details show identity and configuration; topology
+The default view contains summary cards for all sections and collects software,
+sensors and read-only drive health reports. `--compact` keeps the four core cards
+and their collection dependencies; `--section` selects only the requested views. Ordinary details show identity and configuration; topology
 and health hold complete relationships and diagnostic evidence. Whole-disk totals exclude
 partitions and virtual block layers; physical-interface counts use explicit
 kernel identity. Unknown classifications remain visible. Partial capacity totals

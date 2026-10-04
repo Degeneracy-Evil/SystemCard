@@ -72,9 +72,7 @@ def build(
     wanted = (
         tuple(section for section in SECTIONS if section in sections)
         if sections
-        else (
-            SECTIONS[:4] if compact else ("system", "cpu", "memory", "storage", "network", "accelerators", "execution")
-        )
+        else (SECTIONS[:4] if compact else SECTIONS)
     )
     cards = tuple(with_collection_status(builders[section](), meta) for section in wanted)
     if not detailed:

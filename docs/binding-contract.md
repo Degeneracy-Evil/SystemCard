@@ -137,7 +137,8 @@ permissions or changes device settings.
 
 ## Sensors and hardware findings
 
-Default and compact collection do not request Software, Sensors or StorageHealth.
+Default collection requests Software, Sensors and StorageHealth along with the
+other domains. Compact collection does not request those three domains.
 Sensors selection reads Platform and Sensors; health includes Memory/Storage/Pci
 dependencies and read-only drive health queries. Ordinary storage selection requests
 Storage alone. Sysal full retains its existing all-domain public meaning.
@@ -153,8 +154,8 @@ hardware_health contains sensor_alerts, storage_alerts, memory_events and covera
 Sysal derives these findings from already collected typed models. Python does no
 threshold comparison or driver-status interpretation. Driver flags may be latched;
 EDAC events are cumulative since initialization/reset. No findings does not establish
-normal operation. Findings and full evidence are available through --section health
-and --sources. Unsupported or
+normal operation. Default output includes findings summaries; full evidence is
+available through --section health and --sources. Unsupported or
 unreadable power/fan/EDAC data cannot be replaced by a claim of normal operation.
 
 ## Read-only storage health
@@ -181,7 +182,7 @@ driver support. Compact collection does not add these device queries.
 
 ## Presentation levels
 
-Default output shows summary cards without detail tables; selecting a section
+Default output shows all eleven summary cards without detail tables; selecting a section
 expands its hardware fields. `--compact` shows system, CPU, memory and accelerators, with identity and visibility
 dependencies. Ordinary storage shows whole-disk identity/configuration and associated
 block-device mounts; complete namespace mounts and protocol/PCI relationships belong
@@ -194,7 +195,7 @@ retains zero and false reports. Native JSON remains unchanged.
 ## Inventory and quantity semantics
 
 The default scope requests Platform, Cpu, Memory, Accelerator, Network, Storage,
-Pci and Execution. It does not request Software, Sensors or StorageHealth.
+Pci, Software, Execution, Sensors and StorageHealth. Raw payloads are not requested.
 
 Card composition checks meta.failed_collectors before presenting a failed domain's
 empty model. Empty inventories mean zero only with an explicit successful collector

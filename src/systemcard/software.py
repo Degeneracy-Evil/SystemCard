@@ -1,11 +1,13 @@
 """Present software facts from a public Sysal snapshot."""
 
-from typing import Any, Mapping
+from typing import Any, List, Mapping
 
 from systemcard.formatters import (
+    UNKNOWN,
     text,
     yes_no,
 )
+from systemcard.presentation_helpers import joined
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import (
     mapping_items as _mappings,
@@ -13,6 +15,15 @@ from systemcard.schema import (
 from systemcard.schema import (
     mapping_value as _mapping,
 )
+
+
+def _tool_summary(items: List[Mapping[str, Any]]) -> str:
+    names = [
+        " ".join(text(item.get(key)) for key in ("name", "version") if text(item.get(key)) != UNKNOWN) for item in items
+    ]
+    names = [name for name in names if name]
+    result = joined(names[:4], " / ")
+    return result + ("; more in --section software" if len(names) > 4 else "")
 
 
 def software_card(software: Mapping[str, Any]) -> Card:
@@ -53,6 +64,9 @@ def software_card(software: Mapping[str, Any]) -> Card:
         "software",
         "Software",
         (
+            ("Compilers", _tool_summary(compilers)),
+            ("Runtimes", _tool_summary(runtimes)),
+            ("Drivers", _tool_summary(drivers)),
             ("CUDA", f"{text(cuda.get('version'))} · driver {text(cuda.get('driver_version'))}"),
             ("CUDA home", text(cuda.get("home"))),
             ("ROCm", text(rocm.get("version"))),

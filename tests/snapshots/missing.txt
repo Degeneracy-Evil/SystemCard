@@ -24,20 +24,33 @@
 │ Configured speed —                                                           │
 │ DIMM population  —                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭────────────────────────────────── Storage ───────────────────────────────────╮
-│ Whole disks         —                                                        │
-│ Disk capacity       —                                                        │
-│ Models              —                                                        │
-│ Other block devices —                                                        │
+╭──────────────────────────────── Accelerators ────────────────────────────────╮
+│ Summary            —                                                         │
+│ Process visibility —                                                         │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Network ───────────────────────────────────╮
 │ Physical interfaces —                                                        │
 │ Links up            —                                                        │
 │ Other interfaces    —                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
-╭──────────────────────────────── Accelerators ────────────────────────────────╮
-│ Summary            —                                                         │
-│ Process visibility —                                                         │
+╭────────────────────────────────── Storage ───────────────────────────────────╮
+│ Whole disks         —                                                        │
+│ Disk capacity       —                                                        │
+│ Models              —                                                        │
+│ Other block devices —                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭────────────────────────────────── Software ──────────────────────────────────╮
+│ Compilers  —                                                                 │
+│ Runtimes   —                                                                 │
+│ Drivers    —                                                                 │
+│ CUDA       — · driver —                                                      │
+│ CUDA home  —                                                                 │
+│ ROCm       —                                                                 │
+│ ROCm home  —                                                                 │
+│ Level Zero —                                                                 │
+│ MPI        — —                                                               │
+│ RDMA core  —                                                                 │
+│ UCX        —                                                                 │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭───────────────────────────── Execution context ──────────────────────────────╮
 │ Process           — · PID — · PPID —                                         │
@@ -49,4 +62,23 @@
 │ CPU set           —                                                          │
 │ Memory nodes      —                                                          │
 │ Visible resources 0 CPUs · 0 accelerators                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────── Hardware topology ──────────────────────────────╮
+│ NUMA domains           —                                                     │
+│ PCI attachments        —                                                     │
+│ Block dependencies     —                                                     │
+│ Interface dependencies —                                                     │
+│ Details                --section topology                                    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭────────────────────────────── Hardware sensors ──────────────────────────────╮
+│ Temperatures No reports available                                            │
+│ Fans         No reports available                                            │
+│ Power        No reports available                                            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭───────────────────────────── Hardware findings ──────────────────────────────╮
+│ Current findings    0                                                        │
+│ Endurance estimates 0                                                        │
+│ Historical reports  0                                                        │
+│ Drive queries       No drive query reports                                   │
+│ Scope               Reported evidence only; missing data stays unknown       │
 ╰──────────────────────────────────────────────────────────────────────────────╯

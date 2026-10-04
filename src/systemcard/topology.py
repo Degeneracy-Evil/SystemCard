@@ -115,6 +115,12 @@ def topology_card(info: Mapping[str, Any]) -> Card:
     return Card(
         "topology",
         "Hardware topology",
-        (("View", "Explicit relationships reported by the current system"),),
+        (
+            ("NUMA domains", str(len(numa_rows)) if numa_rows else UNKNOWN),
+            ("PCI attachments", str(len(attachments)) if attachments else UNKNOWN),
+            ("Block dependencies", str(len(blocks_rows)) if blocks_rows else UNKNOWN),
+            ("Interface dependencies", str(len(net_rows)) if net_rows else UNKNOWN),
+            ("Details", "--section topology"),
+        ),
         tuple(tables),
     )

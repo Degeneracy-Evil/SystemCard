@@ -7,31 +7,48 @@
 │ Hardware         —                                      │  │ NUMA               1 nodes                              │
 │ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
-╭──────────────────────── Memory ─────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
-│ Host total       64.0 GiB                               │  │ Whole disks         —                                   │
-│ Cgroup limit     16.0 GiB                               │  │ Disk capacity       —                                   │
-│ Cgroup current   8.0 GiB                                │  │ Models              —                                   │
-│ Used / available 16.0 GiB / 48.0 GiB                    │  │ Other block devices —                                   │
+╭──────────────────────── Memory ─────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
+│ Host total       64.0 GiB                               │  │ Summary            1 GPU · 1 MIG instances              │
+│ Cgroup limit     16.0 GiB                               │  │ Process visibility 1 of 2 observed devices              │
+│ Cgroup current   8.0 GiB                                │  │                                                         │
+│ Used / available 16.0 GiB / 48.0 GiB                    │  │                                                         │
 │ Technology       DDR4                                   │  │                                                         │
 │ Configured speed 3200 MT/s                              │  │                                                         │
 │ DIMM population  —                                      │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
-╭──────────────────────── Network ────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
-│ Physical interfaces 0                                   │  │ Summary            1 GPU · 1 MIG instances              │
-│ Links up            0                                   │  │ Process visibility 1 of 2 observed devices              │
-│ Other interfaces    1                                   │  │                                                         │
-│ Unclassified        1                                   │  │                                                         │
+╭──────────────────────── Network ────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
+│ Physical interfaces 0                                   │  │ Whole disks         —                                   │
+│ Links up            0                                   │  │ Disk capacity       —                                   │
+│ Other interfaces    1                                   │  │ Models              —                                   │
+│ Unclassified        1                                   │  │ Other block devices —                                   │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
-╭─────────────────── Execution context ───────────────────╮
-│ Process           systemcard · PID 123 · PPID 1         │
-│ Identity          UID 1000 · GID 1000 · root No         │
-│ Cgroup            v2 · /demo                            │
-│ CPU quota         1.5 CPUs                              │
-│ Memory limit      16.0 GiB                              │
-│ Memory current    8.0 GiB                               │
-│ CPU set           0-1                                   │
-│ Memory nodes      0                                     │
-│ Visible resources 2 CPUs · 1 accelerators               │
+╭─────────────────────── Software ────────────────────────╮  ╭─────────────────── Execution context ───────────────────╮
+│ Compilers  gcc 11.2.0                                   │  │ Process           systemcard · PID 123 · PPID 1         │
+│ Runtimes   —                                            │  │ Identity          UID 1000 · GID 1000 · root No         │
+│ Drivers    —                                            │  │ Cgroup            v2 · /demo                            │
+│ CUDA       — · driver —                                 │  │ CPU quota         1.5 CPUs                              │
+│ CUDA home  —                                            │  │ Memory limit      16.0 GiB                              │
+│ ROCm       6.2.0                                        │  │ Memory current    8.0 GiB                               │
+│ ROCm home  /opt/rocm                                    │  │ CPU set           0-1                                   │
+│ Level Zero 1.17.0                                       │  │ Memory nodes      0                                     │
+│ MPI        — —                                          │  │ Visible resources 2 CPUs · 1 accelerators               │
+│ RDMA core  —                                            │  │                                                         │
+│ UCX        —                                            │  │                                                         │
+╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
+╭─────────────────── Hardware topology ───────────────────╮  ╭─────────────────── Hardware sensors ────────────────────╮
+│ NUMA domains           —                                │  │ Temperatures No reports available                       │
+│ PCI attachments        —                                │  │ Fans         No reports available                       │
+│ Block dependencies     —                                │  │ Power        No reports available                       │
+│ Interface dependencies —                                │  │                                                         │
+│ Details                --section topology               │  │                                                         │
+╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
+╭─────────────────── Hardware findings ───────────────────╮
+│ Current findings    0                                   │
+│ Endurance estimates 0                                   │
+│ Historical reports  0                                   │
+│ Drive queries       No drive query reports              │
+│ Scope               Reported evidence only; missing     │
+│                     data stays unknown                  │
 ╰─────────────────────────────────────────────────────────╯
 ╭────────────────────────────────────────────────────── Warnings ──────────────────────────────────────────────────────╮
 │ demo: optional DIMM details unavailable                                                                              │
