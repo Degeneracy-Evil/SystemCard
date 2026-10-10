@@ -54,7 +54,8 @@ namespace
             {"storage", Collect::Storage},
             {"sensors", Collect::Sensors},
             {"health", Collect::Sensors | Collect::Memory | Collect::Storage | Collect::Pci | Collect::StorageHealth},
-            {"topology", Collect::Cpu | Collect::Memory | Collect::Network | Collect::Storage | Collect::Pci},
+            {"topology",
+             Collect::Cpu | Collect::Memory | Collect::Network | Collect::Storage | Collect::Pci | Collect::Execution},
             {"software", Collect::Software},
             {"execution", Collect::Execution | Collect::Cpu | Collect::Accelerator},
         }};

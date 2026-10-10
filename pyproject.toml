@@ -12,7 +12,7 @@ backend-path = ["packaging"]
 
 [project]
 name = "systemcard"
-version = "0.1.0"
+version = "0.1.1"
 description = "A terminal system information card powered by Sysal"
 readme = "README.md"
 requires-python = ">=3.6.8"
