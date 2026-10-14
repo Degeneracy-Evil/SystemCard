@@ -79,13 +79,14 @@ def _observations(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) 
 
 
 def with_source_gaps(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
-    """Summarize actual source gaps without treating every missing file as a failed domain."""
+    """Show actionable errors by default; retain optional gaps in source details."""
     counts: Dict[str, int] = {}
     for item in _observations(card, meta, info):
         status = integer_or(item.get("status"), -1)
-        if status == 0:
+        failure = integer_or(item.get("failure"), -1)
+        if status == 0 or failure in {0, 2, 4, 6, 7} or (status == 3 and failure == -1):
             continue
-        reason = READ_FAILURES.get(integer_or(item.get("failure"), -1))
+        reason = READ_FAILURES.get(failure)
         label = reason or COLLECT_STATUSES.get(status, "Unknown source status") + " (reason unknown)"
         counts[label] = counts.get(label, 0) + 1
     if not counts:
