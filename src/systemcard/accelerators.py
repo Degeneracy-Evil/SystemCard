@@ -2,7 +2,7 @@
 
 from typing import Any, Counter, Mapping, Optional
 
-from systemcard.collection_status import inventory_known
+from systemcard.collection_status import inventory_complete, inventory_known
 from systemcard.formatters import (
     UNKNOWN,
     bytes_value,
@@ -24,7 +24,7 @@ def accelerator_card(
     accelerators: Mapping[str, Any], show_tables: bool, meta: Optional[Mapping[str, Any]] = None
 ) -> Card:
     devices = _mappings(accelerators.get("devices"))
-    confirmed = inventory_known(meta or {}, "accelerator", accelerators.get("devices"))
+    confirmed = inventory_known(meta or {}, "accelerators.devices", accelerators.get("devices"))
     visible = boolean_count(devices, "visible_to_current_process")
     physical = [item for item in devices if not item.get("parent_uuid")]
     kinds = Counter(enum_text(ACCELERATOR_KINDS, item.get("kind")) for item in physical)
@@ -33,6 +33,8 @@ def accelerator_card(
     )
     if len(physical) < len(devices):
         breakdown += f" · {len(devices) - len(physical)} MIG instances"
+    if devices and not inventory_complete(meta or {}, "accelerators.devices"):
+        breakdown += " (known portion)"
     rows = tuple(
         (
             str(item.get("id", index)),

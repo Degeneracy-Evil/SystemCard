@@ -25,13 +25,15 @@
 │ Model                                │
 │ Demo CPU                             │
 │ Topology                             │
-│ 1 sockets · 2 cores · 4 threads      │
+│ 1 (known portion) sockets · 2 (known │
+│ portion) cores · 4 (known portion)   │
+│ threads                              │
 │ Process visibility                   │
-│ 2 of 4 logical CPUs                  │
+│ 2 of 4 (known portion) logical CPUs  │
 │ CPU quota                            │
 │ 1.5 CPUs                             │
 │ NUMA                                 │
-│ 1 nodes                              │
+│ 1 (known portion) nodes              │
 │ Frequency                            │
 │ base 2.40 GHz                        │
 │ SMT (kernel)                         │
@@ -57,7 +59,8 @@
 ╰──────────────────────────────────────╯
 ╭──────────── Accelerators ────────────╮
 │ Summary                              │
-│ 1 GPU · 1 MIG instances              │
+│ 1 GPU · 1 MIG instances (known       │
+│ portion)                             │
 │ Process visibility                   │
 │ 1 of 2 observed devices              │
 ╰──────────────────────────────────────╯
@@ -114,7 +117,7 @@
 │ Memory nodes                         │
 │ 0                                    │
 │ Visible resources                    │
-│ 2 CPUs · 1 accelerators              │
+│ — CPUs · — accelerators              │
 ╰──────────────────────────────────────╯
 ╭───────── Hardware topology ──────────╮
 │ NUMA domains                         │

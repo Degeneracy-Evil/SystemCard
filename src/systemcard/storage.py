@@ -2,7 +2,7 @@
 
 from typing import Any, List, Mapping, Optional, Tuple
 
-from systemcard.collection_status import inventory_known
+from systemcard.collection_status import inventory_complete, inventory_count, inventory_known
 from systemcard.filesystems import filesystem_summary, filesystem_tables
 from systemcard.formatters import UNKNOWN, bytes_value, pci_address, text, yes_no
 from systemcard.presentation_helpers import joined
@@ -80,11 +80,11 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
     capacities = [integer_value(item.get("capacity")) for item in disks]
     known = [value for value in capacities if value is not None and value >= 0]
     capacity = bytes_value(sum(known)) if known else UNKNOWN
-    if known and len(known) != len(disks):
+    if known and (len(known) != len(disks) or not inventory_complete(meta or {}, "storage.devices")):
         capacity += f" (known portion: {len(known)}/{len(disks)} disks)"
-    confirmed = inventory_known(meta or {}, "storage", storage.get("devices"))
-    disk_count = str(len(disks)) if confirmed else UNKNOWN
-    other_count = str(len(other)) if confirmed else UNKNOWN
+    confirmed = inventory_known(meta or {}, "storage.devices", storage.get("devices"))
+    disk_count = inventory_count(meta or {}, "storage.devices", storage.get("devices"), len(disks))
+    other_count = inventory_count(meta or {}, "storage.devices", storage.get("devices"), len(other))
     if unknown:
         disk_count = f"{len(disks)} (known portion)" if disks else UNKNOWN
         other_count = f"{len(other)} (known portion)" if other else UNKNOWN
@@ -100,7 +100,11 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
     if confirmed and (not unknown or disks):
         solid = sum(item.get("rotational") is False for item in disks)
         rotating = sum(item.get("rotational") is True for item in disks)
-        media_scope = "kernel report; known disks" if unknown else "kernel report"
+        media_scope = (
+            "kernel report; known disks"
+            if unknown or not inventory_complete(meta or {}, "storage.devices")
+            else "kernel report"
+        )
         rows += (("SSD / HDD / unknown", f"{solid} / {rotating} / {len(disks) - solid - rotating} ({media_scope})"),)
         protocols: List[str] = [_protocol(item, storage) for item in disks]
         rows += (
@@ -118,7 +122,14 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
         rows += (
             (
                 "Removable whole disks",
-                str(sum(value is True for value in known_removable)) if len(known_removable) == len(disks) else UNKNOWN,
+                inventory_count(
+                    meta or {},
+                    "storage.devices",
+                    storage.get("devices"),
+                    sum(value is True for value in known_removable),
+                )
+                if len(known_removable) == len(disks)
+                else UNKNOWN,
             ),
         )
     rows += filesystem_summary(storage)

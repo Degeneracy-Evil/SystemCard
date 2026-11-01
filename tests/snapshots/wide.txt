@@ -2,18 +2,21 @@
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮
 │ Host             demo-node                              │  │ Vendor                  —                               │
 │ Operating system Demo Linux 1.0                         │  │ Model                   Demo CPU                        │
-│ Kernel           5.15.0                                 │  │ Topology                1 sockets · 2 cores · 4 threads │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility      2 of 4 logical CPUs             │
-│ Manufacturer     —                                      │  │ CPU quota               1.5 CPUs                        │
-│ Machine model    —                                      │  │ NUMA                    1 nodes                         │
-│ Firmware         —                                      │  │ Frequency               base 2.40 GHz                   │
-│ Firmware date    —                                      │  │ SMT (kernel)            supported — · active —          │
-│ Boot mode        —                                      │  │ Current (policy report) —                               │
+│ Kernel           5.15.0                                 │  │ Topology                1 (known portion) sockets · 2   │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │                         (known portion) cores · 4       │
+│ Manufacturer     —                                      │  │                         (known portion) threads         │
+│ Machine model    —                                      │  │ Process visibility      2 of 4 (known portion) logical  │
+│ Firmware         —                                      │  │                         CPUs                            │
+│ Firmware date    —                                      │  │ CPU quota               1.5 CPUs                        │
+│ Boot mode        —                                      │  │ NUMA                    1 (known portion) nodes         │
+│                                                         │  │ Frequency               base 2.40 GHz                   │
+│                                                         │  │ SMT (kernel)            supported — · active —          │
+│                                                         │  │ Current (policy report) —                               │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Memory ─────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
-│ Host total       64.0 GiB                               │  │ Summary            1 GPU · 1 MIG instances              │
-│ Cgroup limit     16.0 GiB                               │  │ Process visibility 1 of 2 observed devices              │
-│ Cgroup current   8.0 GiB                                │  │                                                         │
+│ Host total       64.0 GiB                               │  │ Summary            1 GPU · 1 MIG instances (known       │
+│ Cgroup limit     16.0 GiB                               │  │                    portion)                             │
+│ Cgroup current   8.0 GiB                                │  │ Process visibility 1 of 2 observed devices              │
 │ Used / available 16.0 GiB / 48.0 GiB                    │  │                                                         │
 │ Technology       DDR4                                   │  │                                                         │
 │ Configured speed 3200 MT/s                              │  │                                                         │
@@ -35,7 +38,7 @@
 │ ROCm       6.2.0                                        │  │ Memory current    8.0 GiB                               │
 │ ROCm home  /opt/rocm                                    │  │ CPU set           0-1                                   │
 │ Level Zero 1.17.0                                       │  │ Memory nodes      0                                     │
-│ MPI        — —                                          │  │ Visible resources 2 CPUs · 1 accelerators               │
+│ MPI        — —                                          │  │ Visible resources — CPUs · — accelerators               │
 │ RDMA core  —                                            │  │                                                         │
 │ UCX        —                                            │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯

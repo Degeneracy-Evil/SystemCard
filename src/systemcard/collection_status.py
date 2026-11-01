@@ -1,6 +1,6 @@
 """Labels for reported collection outcomes; never infer failure causes."""
 
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 from systemcard.presentation_types import Card
 from systemcard.schema import integer_or, list_value, mapping_items
@@ -26,18 +26,44 @@ def collection_result(report: Mapping[str, Any]) -> str:
     return status if integer_or(report.get("status"), -1) == 0 else status + "; reason unknown"
 
 
-def inventory_known(meta: Mapping[str, Any], domain: str, entries: object) -> bool:
-    """An empty inventory needs a successful collector report to mean zero."""
-    if not isinstance(entries, list) or domain in list_value(meta.get("failed_collectors")):
-        return False
-    if entries:
-        return True
-    if any(
-        item.get("domain") == domain and integer_or(item.get("status"), -1) != 0
-        for item in mapping_items(meta.get("observations"))
-    ):
-        return False
-    return domain in list_value(meta.get("succeeded_collectors"))
+# Public Sysal InventoryKind values, centralized at the JSON boundary.
+INVENTORIES = {
+    "cpu.packages": 0,
+    "cpu.cores": 1,
+    "cpu.logical_cpus": 2,
+    "cpu.numa_nodes": 3,
+    "cpu.caches": 4,
+    "network.interfaces": 5,
+    "storage.devices": 6,
+    "pci.devices": 7,
+    "accelerators.devices": 8,
+}
+
+
+def inventory_complete(meta: Mapping[str, Any], inventory: str) -> bool:
+    """Only an explicit, unique library report can establish completeness."""
+    kind = INVENTORIES[inventory]
+    reports = [item for item in mapping_items(meta.get("inventories")) if integer_or(item.get("inventory"), -1) == kind]
+    return len(reports) == 1 and integer_or(reports[0].get("completeness"), -1) == 2
+
+
+def inventory_known(meta: Mapping[str, Any], inventory: str, entries: object) -> bool:
+    """Observed entries are usable; an empty list needs explicit completeness."""
+    return (
+        isinstance(entries, list)
+        and all(isinstance(item, Mapping) for item in entries)
+        and (bool(entries) or inventory_complete(meta, inventory))
+    )
+
+
+def inventory_count(meta: Mapping[str, Any], inventory: str, entries: object, count: Optional[int] = None) -> str:
+    """Format a count within the scope established by the library."""
+    if not isinstance(entries, list) or any(not isinstance(item, Mapping) for item in entries):
+        return "—"
+    value = len(entries) if count is None else count
+    if inventory_complete(meta, inventory):
+        return str(value)
+    return f"{value} (known portion)" if entries and value else "—"
 
 
 def collector_domain(section: str) -> str:

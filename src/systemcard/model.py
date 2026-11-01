@@ -3,7 +3,7 @@
 from typing import Any, Callable, Dict, List, Mapping, Optional
 
 from systemcard.accelerators import accelerator_card
-from systemcard.collection_status import inventory_known, with_collection_status
+from systemcard.collection_status import inventory_complete, with_collection_status
 from systemcard.cpu import cpu_card
 from systemcard.execution import execution_card as _execution_card
 from systemcard.formatters import UNKNOWN, text
@@ -45,12 +45,12 @@ def build(
         accelerators = _mapping(info.get("accelerators"))
         visible_cpu_count = (
             boolean_count(_mappings(cpu.get("logical_cpus")), "visible_to_current_process")
-            if inventory_known(meta, "cpu", cpu.get("logical_cpus"))
+            if isinstance(cpu.get("logical_cpus"), list) and inventory_complete(meta, "cpu.logical_cpus")
             else None
         )
         visible_accelerator_count = (
             boolean_count(_mappings(accelerators.get("devices")), "visible_to_current_process")
-            if inventory_known(meta, "accelerator", accelerators.get("devices"))
+            if isinstance(accelerators.get("devices"), list) and inventory_complete(meta, "accelerators.devices")
             else None
         )
         return _execution_card(_mapping(info.get("execution")), visible_cpu_count, visible_accelerator_count)

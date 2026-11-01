@@ -2,7 +2,7 @@
 
 from typing import Any, List, Mapping, Optional, Tuple
 
-from systemcard.collection_status import inventory_known
+from systemcard.collection_status import inventory_complete, inventory_known
 from systemcard.formatters import UNKNOWN, bit_rate, enum_text, pci_address, text, yes_no
 from systemcard.presentation_helpers import boolean_count
 from systemcard.presentation_helpers import joined as _joined
@@ -24,7 +24,7 @@ def _links_up(interfaces: List[Mapping[str, Any]]) -> str:
 
 
 def _summary(
-    network: Mapping[str, Any], interfaces: List[Mapping[str, Any]], confirmed: bool
+    network: Mapping[str, Any], interfaces: List[Mapping[str, Any]], confirmed: bool, complete: bool
 ) -> Tuple[Tuple[str, str], ...]:
     physical = [
         item
@@ -36,7 +36,7 @@ def _summary(
     physical_count = str(len(physical)) if confirmed else UNKNOWN
     other = str(other_count) if confirmed else UNKNOWN
     links_up = _links_up(physical) if confirmed else UNKNOWN
-    if unclassified:
+    if unclassified or not complete:
         physical_count = f"{len(physical)} (known portion)" if physical else UNKNOWN
         other = f"{other_count} (known portion)" if other_count else UNKNOWN
         links_up = f"{links_up} (known physical interfaces)" if physical and links_up != UNKNOWN else UNKNOWN
@@ -61,9 +61,13 @@ def _summary(
 
 def network_card(network: Mapping[str, Any], detailed: bool, meta: Optional[Mapping[str, Any]] = None) -> Card:
     interfaces = _mappings(network.get("interfaces"))
-    confirmed = inventory_known(meta or {}, "network", network.get("interfaces"))
+    confirmed = inventory_known(meta or {}, "network.interfaces", network.get("interfaces"))
     if not detailed:
-        return Card("network", "Network", _summary(network, interfaces, confirmed))
+        return Card(
+            "network",
+            "Network",
+            _summary(network, interfaces, confirmed, inventory_complete(meta or {}, "network.interfaces")),
+        )
     visible = boolean_count(interfaces, "visible_to_current_process")
     shown = interfaces
     columns = ("Name", "State", "Speed", "Addresses", "Hardware")

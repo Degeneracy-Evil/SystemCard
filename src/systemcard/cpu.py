@@ -2,7 +2,7 @@
 
 from typing import Any, Counter, Dict, List, Mapping, Optional, Tuple, Union
 
-from systemcard.collection_status import inventory_known
+from systemcard.collection_status import inventory_count
 from systemcard.formatters import (
     UNKNOWN,
     bytes_value,
@@ -328,7 +328,7 @@ def cpu_card(
     if drivers:
         hardware_rows.append(("Frequency driver", " / ".join(drivers)))
     counts = {
-        key: str(len(_items(cpu.get(key)))) if inventory_known(meta or {}, "cpu", cpu.get(key)) else UNKNOWN
+        key: inventory_count(meta or {}, "cpu." + key, cpu.get(key))
         for key in ("packages", "cores", "logical_cpus", "numa_nodes")
     }
     visibility = (
