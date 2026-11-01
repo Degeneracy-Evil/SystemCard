@@ -1,6 +1,6 @@
 """Present cpu facts from a public Sysal snapshot."""
 
-from typing import Any, Counter, Dict, List, Mapping, Optional, Tuple, Union
+from typing import Any, Counter, Dict, List, Mapping, Optional, Set, Tuple, Union
 
 from systemcard.collection_status import inventory_count
 from systemcard.formatters import (
@@ -30,25 +30,25 @@ from systemcard.schema import (
 )
 
 CACHE_TYPES = {0: "Data", 1: "Instruction", 2: "Unified", 3: "Other"}
-ISA_EXTENSIONS = {
-    0: "SSE",
-    1: "SSE2",
-    2: "SSE3",
-    3: "SSSE3",
-    4: "SSE4.1",
-    5: "SSE4.2",
-    6: "AVX",
-    7: "AVX2",
-    8: "AVX-512F",
-    9: "AVX-512CD",
-    10: "AVX-512BW",
-    11: "AVX-512DQ",
-    12: "AVX-512VL",
-    13: "AES",
-    14: "FMA",
-    15: "F16C",
-    16: "PCLMULQDQ",
-}
+COMMON_CAPABILITIES = (
+    ("SSE2", "sse2"),
+    ("SSE3", "sse3"),
+    ("SSSE3", "ssse3"),
+    ("SSE4.1", "sse4_1"),
+    ("SSE4.2", "sse4_2"),
+    ("AES", "aes"),
+    ("AVX", "avx"),
+    ("AVX2", "avx2"),
+    ("AVX-512F", "avx512f"),
+    ("AVX-512 VNNI", "avx512vnni"),
+    ("SHA", "sha"),
+    ("BMI1", "bmi1"),
+    ("BMI2", "bmi2"),
+    ("F16C", "f16c"),
+    ("FMA", "fma"),
+    ("CMPXCHG16B", "cmpxchg16b"),
+    ("LAHF/SAHF", "lahf_sahf"),
+)
 
 
 def _reported_frequency(policies: List[Mapping[str, Any]], key: str, scope: str = "policies") -> str:
@@ -64,35 +64,39 @@ def _reported_frequency(policies: List[Mapping[str, Any]], key: str, scope: str 
     return result
 
 
-def _capabilities(logical: List[Mapping[str, Any]]) -> DetailTable:
-    features = (
-        ("SSE2", "sse2"),
-        ("SSE3", "pni"),
-        ("SSSE3", "ssse3"),
-        ("SSE4.1", "sse4_1"),
-        ("SSE4.2", "sse4_2"),
-        ("AES", "aes"),
-        ("AVX", "avx"),
-        ("AVX2", "avx2"),
-        ("AVX-512F", "avx512f"),
-        ("AVX-512 VNNI", "avx512_vnni"),
-        ("SHA", "sha_ni"),
-        ("BMI1", "bmi1"),
-        ("BMI2", "bmi2"),
-        ("F16C", "f16c"),
-        ("FMA", "fma"),
-        ("CMPXCHG16B", "cx16"),
-        ("LAHF/SAHF", "lahf_lm"),
-    )
+def _report_ids(value: object) -> Optional[List[int]]:
+    if not isinstance(value, list):
+        return None
+    ids: List[int] = []
+    seen: Set[int] = set()
+    for item in value:
+        number = integer_value(item)
+        if number is None or number < 0 or number in seen:
+            return None
+        seen.add(number)
+        ids.append(number)
+    return ids
+
+
+def _capabilities(summary: Mapping[str, Any]) -> DetailTable:
+    scope = _report_ids(summary.get("logical_cpu_ids"))
+    reports = _mappings(summary.get("reports"))
     rows: List[Tuple[str, ...]] = []
-    for label, flag in features:
-        ids = [
-            item.get("id") for item in logical if flag in _items(_mapping(item.get("identification")).get("features"))
-        ]
-        rows.append((label, f"Reported on {len(ids)}/{len(logical)} CPUs" if ids else "Not reported", cpu_list(ids)))
+    for label, name in COMMON_CAPABILITIES:
+        matches = [report for report in reports if report.get("name") == name]
+        report = matches[0] if len(matches) == 1 else {}
+        positive = _report_ids(report.get("reported_cpu_ids"))
+        negative = _report_ids(report.get("not_reported_cpu_ids"))
+        unknown = _report_ids(report.get("unknown_cpu_ids"))
+        if scope and positive is not None and negative is not None and unknown is not None:
+            members = positive + negative + unknown
+            if len(members) == len(scope) and set(members) == set(scope):
+                rows.append((label, str(len(positive)), str(len(negative)), str(len(unknown)), cpu_list(positive)))
+                continue
+        rows.append((label, UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN))
     return DetailTable(
-        "Common x86 capabilities (kernel reports; absence does not prove unsupported)",
-        ("Capability", "Reported availability", "CPUs"),
+        "Selected x86 capabilities (observed CPUs; absence does not prove unsupported)",
+        ("Capability", "Reported", "Not reported", "Unknown", "CPUs reporting"),
         tuple(rows),
     )
 
@@ -237,7 +241,14 @@ def cpu_card(
             )
             if part
         )
-    isa = " ".join(enum_text(ISA_EXTENSIONS, item) for item in _items(cpu.get("isa_extensions"))) or UNKNOWN
+    feature_summary = _mapping(cpu.get("feature_summary"))
+    common = feature_summary.get("common")
+    isa = (
+        " ".join(label for label, name in COMMON_CAPABILITIES if name in common)
+        or "None reported (selected capabilities)"
+        if isinstance(common, list)
+        else UNKNOWN
+    )
     thermals = _mappings(cpu.get("thermal_zones"))
     thermal_values: List[Union[int, float]] = []
     for item in thermals:
@@ -292,7 +303,7 @@ def cpu_card(
     if detailed:
         tables.extend(_cpu_hardware_tables(cpu, logical))
         if logical and architecture.lower().startswith(("x86", "amd64", "i386", "i486", "i586", "i686")):
-            tables.append(_capabilities(logical))
+            tables.append(_capabilities(feature_summary))
     hardware_rows: List[Tuple[str, str]] = []
     if cpu.get("caches") and all(item.get("shared_cpus") for item in _mappings(cpu.get("caches"))):
         hardware_rows.extend(
@@ -315,9 +326,6 @@ def cpu_card(
         present = str(len(_items(cpu["present_cpu_ids"]))) if isinstance(cpu.get("present_cpu_ids"), list) else UNKNOWN
         hardware_rows.append(("CPU state", f"{online} online · {present} present"))
     supported = cpu.get("smt_supported")
-    if not isinstance(supported, bool):
-        control = cpu.get("smt_control")
-        supported = False if control == "notsupported" else True if control in {"on", "off", "forceoff"} else None
     hardware_rows.append(("SMT (kernel)", f"supported {yes_no(supported)} · active {yes_no(cpu.get('smt_active'))}"))
     if cpu.get("smt_control"):
         hardware_rows.append(("SMT control", text(cpu.get("smt_control"))))
@@ -351,7 +359,7 @@ def cpu_card(
         ("Current hardware frequency", _reported_frequency(policies, "hardware_current_frequency")),
         ("Current policy frequency", _reported_frequency(policies, "scaling_current_frequency")),
         ("Governor", text(cpu.get("governor"))),
-        ("ISA", isa),
+        ("ISA (observed common)", isa),
         ("Thermal zone maximum", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
         *hardware_rows,
     )
