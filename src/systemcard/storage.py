@@ -4,65 +4,78 @@ from typing import Any, List, Mapping, Optional, Tuple
 
 from systemcard.collection_status import inventory_complete, inventory_count, inventory_known
 from systemcard.filesystems import filesystem_summary, filesystem_tables
-from systemcard.formatters import UNKNOWN, bytes_value, pci_address, text, yes_no
+from systemcard.formatters import UNKNOWN, bytes_value, enum_text, pci_address, text, yes_no
 from systemcard.presentation_helpers import joined
 from systemcard.presentation_types import Card, DetailTable
-from systemcard.schema import integer_or, integer_value, mapping_items, mapping_value
+from systemcard.schema import integer_or, integer_value, list_value, mapping_items, mapping_value
 from systemcard.storage_mounts import mount_table
+
+BLOCK_LAYERS = {1: "Device", 2: "Partition", 3: "Device mapper", 4: "RAID", 5: "Loop", 6: "Virtual"}
+STORAGE_PURPOSES = {1: "Disk", 2: "Optical", 3: "Other"}
+STORAGE_PROTOCOLS = {1: "NVMe", 2: "ATA", 3: "SCSI"}
+STORAGE_TRANSPORTS = {
+    1: "PCIe",
+    2: "SATA",
+    3: "SAS",
+    4: "USB",
+    5: "TCP",
+    6: "RDMA",
+    7: "FC",
+    8: "iSCSI",
+    9: "Parallel SCSI",
+}
+
+
+def _classification(device: Mapping[str, Any]) -> Mapping[str, Any]:
+    return mapping_value(device.get("classification"))
 
 
 def _whole_disk(device: Mapping[str, Any]) -> bool:
-    peripheral = integer_value(mapping_value(device.get("scsi_device")).get("peripheral_type"))
-    # SCSI direct-access, RBC and zoned block devices; optical/tape are not disks.
-    if peripheral is not None and peripheral not in {0x00, 0x0E, 0x14}:
-        return False
-    if "layer" in device:
-        return device.get("layer") == "disk"
-    return integer_or(device.get("kind"), 3) in {0, 1, 2} and not device.get("partition_number")
+    classification = _classification(device)
+    return integer_or(classification.get("layer")) == 1 and integer_or(classification.get("purpose")) == 1
 
 
 def _unclassified(device: Mapping[str, Any]) -> bool:
-    layer = device.get("layer")
-    if isinstance(layer, str) and layer not in {"", "unknown", "other"}:
-        return False
-    return not _whole_disk(device) and not device.get("partition_number") and not device.get("parent")
+    classification = _classification(device)
+    layer = integer_or(classification.get("layer"))
+    return layer not in BLOCK_LAYERS or (
+        layer == 1 and integer_or(classification.get("purpose")) not in STORAGE_PURPOSES
+    )
 
 
 def _medium(device: Mapping[str, Any]) -> str:
     rotational = device.get("rotational")
-    return "HDD / rotating" if rotational is True else "SSD / non-rotating" if rotational is False else UNKNOWN
+    return "Rotating" if rotational is True else "Non-rotating" if rotational is False else UNKNOWN
 
 
-def _protocol(device: Mapping[str, Any], storage: Mapping[str, Any]) -> str:
-    namespace = mapping_value(device.get("nvme_namespace"))
-    namespace_id = integer_value(namespace.get("id"))
-    if namespace_id is not None and namespace_id > 0:
-        return "NVMe"
-    transport = text(device.get("transport"))
-    if transport != UNKNOWN:
-        return transport
-    scsi = device.get("scsi_device")
-    if isinstance(scsi, Mapping):
-        host = integer_value(mapping_value(scsi.get("address")).get("host"))
-        for item in mapping_items(storage.get("scsi_hosts")):
-            if host is not None and item.get("number") == host:
-                return (
-                    "ATA (transport unspecified)"
-                    if integer_value(item.get("ata_port")) is not None
-                    else "SCSI (transport unknown)"
-                )
-    return UNKNOWN
+def _protocol(device: Mapping[str, Any]) -> str:
+    return enum_text(STORAGE_PROTOCOLS, _classification(device).get("protocol"))
 
 
-def _devices(title: str, devices: List[Mapping[str, Any]], storage: Mapping[str, Any]) -> DetailTable:
+def _transports(device: Mapping[str, Any]) -> str:
+    return (
+        " / ".join(
+            dict.fromkeys(
+                enum_text(STORAGE_TRANSPORTS, item) for item in list_value(_classification(device).get("transports"))
+            )
+        )
+        or UNKNOWN
+    )
+
+
+def _devices(title: str, devices: List[Mapping[str, Any]]) -> DetailTable:
     return DetailTable(
         title,
-        ("Name", "Medium / layer", "Protocol", "Capacity", "Model", "PCI"),
+        ("Name", "Layer / purpose", "Rotation", "Protocol", "Transport", "Capacity", "Model", "PCI"),
         tuple(
             (
                 text(item.get("name")),
-                text(item.get("layer")) if not _whole_disk(item) else _medium(item),
-                _protocol(item, storage),
+                enum_text(BLOCK_LAYERS, _classification(item).get("layer"))
+                + " / "
+                + enum_text(STORAGE_PURPOSES, _classification(item).get("purpose")),
+                _medium(item),
+                _protocol(item),
+                _transports(item),
                 bytes_value(item.get("capacity")),
                 text(item.get("model")),
                 pci_address(item.get("pci_address")),
@@ -92,8 +105,8 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
             capacity += "; block classification incomplete"
     models = list(dict.fromkeys(str(item["model"]) for item in disks if item.get("model")))
     rows: Tuple[Tuple[str, str], ...] = (
-        ("Whole disks", disk_count),
-        ("Disk capacity", capacity),
+        ("Disk devices", disk_count),
+        ("Device capacity (sum)", capacity),
         ("Models", joined(models[:3], " / ") + ("; more in --section storage" if len(models) > 3 else "")),
         ("Other block devices", other_count),
     )
@@ -105,8 +118,13 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
             if unknown or not inventory_complete(meta or {}, "storage.devices")
             else "kernel report"
         )
-        rows += (("SSD / HDD / unknown", f"{solid} / {rotating} / {len(disks) - solid - rotating} ({media_scope})"),)
-        protocols: List[str] = [_protocol(item, storage) for item in disks]
+        rows += (
+            (
+                "Rotation (yes / no / unknown)",
+                f"{rotating} / {solid} / {len(disks) - solid - rotating} ({media_scope})",
+            ),
+        )
+        protocols: List[str] = [_protocol(item) for item in disks]
         rows += (
             (
                 "Protocols",
@@ -117,33 +135,38 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
                 or UNKNOWN,
             ),
         )
+        rows += (("Transports", joined(list(dict.fromkeys(_transports(item) for item in disks)), " · ")),)
         removable = [item.get("removable") for item in disks]
         known_removable = [value for value in removable if isinstance(value, bool)]
-        rows += (
-            (
-                "Removable whole disks",
-                inventory_count(
-                    meta or {},
-                    "storage.devices",
-                    storage.get("devices"),
-                    sum(value is True for value in known_removable),
-                )
-                if len(known_removable) == len(disks)
-                else UNKNOWN,
-            ),
-        )
+        removable_count = UNKNOWN
+        if len(known_removable) == len(disks):
+            count = sum(value is True for value in known_removable)
+            removable_count = (
+                f"{count} (known disks)"
+                if unknown
+                else inventory_count(meta or {}, "storage.devices", storage.get("devices"), count)
+            )
+        rows += (("Removable whole disks", removable_count),)
     rows += filesystem_summary(storage)
     if unknown:
-        rows += (("Unclassified block devices", str(len(unknown))),)
+        rows += (
+            (
+                "Unclassified block devices",
+                inventory_count(meta or {}, "storage.devices", storage.get("devices"), len(unknown)),
+            ),
+        )
     if not detailed:
         return Card("storage", "Storage", rows)
-    tables: List[DetailTable] = [_devices("Whole disks (kernel inventory)", disks, storage)]
+    tables: List[DetailTable] = [_devices("Whole disk devices (kernel inventory)", disks)]
+    if other or unknown:
+        tables.append(_devices("Other and unclassified block devices", other + unknown))
     fields = (
         ("vendor", "Vendor"),
         ("serial", "Serial"),
         ("firmware_revision", "Firmware"),
         ("wwid", "WWID"),
-        ("transport", "Transport"),
+        ("transport", "Reported transport"),
+        ("driver", "Driver"),
         ("controller_name", "PCI controller"),
         ("numa_node", "NUMA node"),
         ("scheduler", "I/O scheduler"),
@@ -158,7 +181,11 @@ def storage_card(storage: Mapping[str, Any], detailed: bool, meta: Optional[Mapp
         ("minimum_io_size", "Minimum I/O (bytes)"),
         ("optimal_io_size", "Optimal I/O (bytes)"),
     )
-    hardware = [item for item in devices if _whole_disk(item) or item.get("layer") in {"md", "device-mapper"}]
+    hardware = [
+        item
+        for item in devices
+        if _whole_disk(item) or _unclassified(item) or integer_or(_classification(item).get("layer")) in {3, 4}
+    ]
     values = tuple(
         (text(item.get("name")), label, text(item.get(key)))
         for item in hardware

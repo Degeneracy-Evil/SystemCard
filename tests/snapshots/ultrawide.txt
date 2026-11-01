@@ -14,8 +14,8 @@
 │                                                         │  │ Current (policy report) —                               │  │                                                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭───────────────────── Accelerators ──────────────────────╮  ╭──────────────────────── Network ────────────────────────╮  ╭─────────────────────── Storage ────────────────────────╮
-│ Summary            1 GPU · 1 MIG instances (known       │  │ Physical interfaces —                                   │  │ Whole disks           —                                │
-│                    portion)                             │  │ Links up            —                                   │  │ Disk capacity         —                                │
+│ Summary            1 GPU · 1 MIG instances (known       │  │ Physical interfaces —                                   │  │ Disk devices          —                                │
+│                    portion)                             │  │ Links up            —                                   │  │ Device capacity (sum) —                                │
 │ Process visibility 1 of 2 observed devices              │  │ Other interfaces    —                                   │  │ Models                —                                │
 │                                                         │  │ Unclassified        1                                   │  │ Other block devices   —                                │
 │                                                         │  │                                                         │  │ Filesystem statistics —                                │

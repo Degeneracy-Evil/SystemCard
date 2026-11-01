@@ -40,8 +40,8 @@
 │ Other interfaces    —                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
-│ Whole disks           —                                                      │
-│ Disk capacity         —                                                      │
+│ Disk devices          —                                                      │
+│ Device capacity (sum) —                                                      │
 │ Models                —                                                      │
 │ Other block devices   —                                                      │
 │ Filesystem statistics —                                                      │

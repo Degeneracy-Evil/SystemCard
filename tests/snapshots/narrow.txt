@@ -75,9 +75,9 @@
 │ 1                                    │
 ╰──────────────────────────────────────╯
 ╭────────────── Storage ───────────────╮
-│ Whole disks                          │
+│ Disk devices                         │
 │ —                                    │
-│ Disk capacity                        │
+│ Device capacity (sum)                │
 │ —                                    │
 │ Models                               │
 │ —                                    │

@@ -23,8 +23,8 @@
 │ DIMM population  —                                      │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Network ────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
-│ Physical interfaces —                                   │  │ Whole disks           —                                 │
-│ Links up            —                                   │  │ Disk capacity         —                                 │
+│ Physical interfaces —                                   │  │ Disk devices          —                                 │
+│ Links up            —                                   │  │ Device capacity (sum) —                                 │
 │ Other interfaces    —                                   │  │ Models                —                                 │
 │ Unclassified        1                                   │  │ Other block devices   —                                 │
 │                                                         │  │ Filesystem statistics —                                 │
