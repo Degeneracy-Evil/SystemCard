@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Mapping, Set, Tuple
 
-from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES, collector_domain
+from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES, SKIP_REASONS, collector_domain
 from systemcard.formatters import UNKNOWN, pci_address
 from systemcard.presentation_types import Card, DetailTable
 from systemcard.schema import integer_or, integer_value, list_value, mapping_items, mapping_value
@@ -86,9 +86,13 @@ def with_source_gaps(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any
     for item in _observations(card, meta, info):
         status = integer_or(item.get("status"), -1)
         failure = integer_or(item.get("failure"), -1)
-        if status == 0 or failure in {0, 2, 4, 6, 7} or (status == 3 and failure == -1):
+        if (
+            status == 0
+            or failure in {0, 2, 4, 6, 7}
+            or (status == 3 and failure == -1 and integer_or(item.get("skip"), -1) != 3)
+        ):
             continue
-        reason = READ_FAILURES.get(failure)
+        reason = READ_FAILURES.get(failure) or SKIP_REASONS.get(integer_or(item.get("skip"), -1))
         label = reason or COLLECT_STATUSES.get(status, "Unknown source status") + " (reason unknown)"
         counts[label] = counts.get(label, 0) + 1
     if not counts:
@@ -117,7 +121,8 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
             COLLECT_STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
             READ_FAILURES.get(
                 integer_or(item.get("failure"), -1),
-                filesystem_notes.get(
+                SKIP_REASONS.get(integer_or(item.get("skip"), -1))
+                or filesystem_notes.get(
                     str(item.get("origin", "")),
                     UNKNOWN if integer_or(item.get("status"), -1) == 0 else "Reason unknown",
                 ),

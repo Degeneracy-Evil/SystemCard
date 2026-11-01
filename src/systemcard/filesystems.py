@@ -87,7 +87,7 @@ def filesystem_tables(storage: Mapping[str, Any]) -> Tuple[DetailTable, ...]:
                 bytes_value(used),
                 bytes_value(usage.get("available")),
                 percent(100 * used / total) if total and used is not None else UNKNOWN,
-                "Not queried" if report.get("status") == 3 and report.get("note") else collection_result(report),
+                collection_result(report),
             )
         )
         total_inodes = integer_value(usage.get("inodes"))

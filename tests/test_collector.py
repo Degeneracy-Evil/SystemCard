@@ -1,22 +1,25 @@
 """Tests for the native collection boundary."""
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, ClassVar
 
 import pytest
 
 import systemcard
+from systemcard._native import Domain, FilesystemQuery, SensorDevices
 from systemcard.collector import CollectionError, collect
 
 
 class SuccessfulNative:
-    """Small native-module stand-in that records the requested scope."""
+    """Small native-module stand-in that records the requested domains."""
 
-    scope: str | None = None
+    domains: ClassVar[list[Domain]] = []
 
     @classmethod
-    def collect(cls, scope: str) -> Mapping[str, Any]:
-        cls.scope = scope
+    def collect(
+        cls, domains: list[Domain], _filesystems: FilesystemQuery, _sensors: SensorDevices
+    ) -> Mapping[str, Any]:
+        cls.domains = domains
         return {"info": {}, "warnings": []}
 
 
@@ -24,16 +27,16 @@ class FailingNative:
     """Native-module stand-in that reports a collection failure."""
 
     @staticmethod
-    def collect(scope: str) -> dict[str, Any]:
-        raise RuntimeError(f"failed: {scope}")
+    def collect(_domains: list[Domain], _filesystems: FilesystemQuery, _sensors: SensorDevices) -> dict[str, Any]:
+        raise RuntimeError("failed: native")
 
 
 class InvalidNative:
     """Native-module stand-in with an invalid return value."""
 
     @staticmethod
-    def collect(scope: str) -> str:
-        return scope
+    def collect(domains: list[Domain], _filesystems: FilesystemQuery, _sensors: SensorDevices) -> str:
+        return str(domains)
 
 
 def test_collect_forwards_scope_and_copies_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -41,14 +44,14 @@ def test_collect_forwards_scope_and_copies_snapshot(monkeypatch: pytest.MonkeyPa
 
     snapshot = collect("full")
 
-    assert SuccessfulNative.scope == "full"
+    assert Domain.RAW in SuccessfulNative.domains
     assert snapshot == {"info": {}, "warnings": []}
 
 
 def test_collect_wraps_native_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(systemcard, "_native", FailingNative, raising=False)
 
-    with pytest.raises(CollectionError, match="failed: basic"):
+    with pytest.raises(CollectionError, match="failed: native"):
         collect("basic")
 
 

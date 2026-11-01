@@ -15,12 +15,21 @@ READ_FAILURES = {
     6: "Source did not provide a value",
     7: "Skipped in low power mode",
 }
+SKIP_REASONS = {
+    0: "Skip reason unknown",
+    1: "Not requested",
+    2: "Excluded by policy",
+    3: "Query budget exhausted",
+    4: "Query not applicable",
+}
 COLLECT_STATUSES = {0: "Read succeeded", 1: "Partial result", 2: "Failed", 3: "Not collected"}
 
 
 def collection_result(report: Mapping[str, Any]) -> str:
     status = COLLECT_STATUSES.get(integer_or(report.get("status"), -1), "Unknown status")
-    reason = READ_FAILURES.get(integer_or(report.get("failure"), -1))
+    reason = READ_FAILURES.get(integer_or(report.get("failure"), -1)) or SKIP_REASONS.get(
+        integer_or(report.get("skip"), -1)
+    )
     if reason is not None:
         return f"{status}: {reason}"
     return status if integer_or(report.get("status"), -1) == 0 else status + "; reason unknown"
