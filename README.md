@@ -19,7 +19,7 @@ uv sync --locked --dev
 uv run --locked systemcard
 ```
 
-Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.21 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.21), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
+Development uses Python 3.12 and the locked uv environment. The local build requires CMake 3.24+, a C++20 compiler, Python 3.12 for development tools, and network access for the first build. CMake downloads the pinned [Sysal v0.0.26 release package](https://github.com/Degeneracy-Evil/sysal/releases/tag/v0.0.26), verifies its SHA-256 digest, and statically links `libsysal.a` into the native extension.
 
 Run the complete project checks with:
 
@@ -40,6 +40,21 @@ The hook checks whitespace and Python formatting without changing or staging fil
 `uv run --locked ruff check --fix .` and `uv run --locked ruff format .`.
 Dependency changes update `uv.lock` explicitly; normal development and CI use locked environments.
 Use `systemcard` or `uv run --locked python -m systemcard` as the entry point.
+
+## Responsibilities and collection
+
+Sysal owns detailed collection, normalization, hardware relationships and evidence status.
+SystemCard selects domains and facts for presentation. Python translates sections and scopes
+into a collection plan; the native adapter accepts only public Sysal enums and policies.
+The interactive plan queries local filesystem capacity and excludes positively identified
+PCI display-device sensors. Direct native callers can request other library policies.
+
+Inventory completeness is separate from optional attribute failures. Empty legacy data stays
+unknown unless the library explicitly establishes completeness. CPU capability tables consume
+reported/not-reported/unknown CPU groups; the common set covers observed CPU IDs rather than
+a theoretical whole machine. Storage layer, purpose, protocol and reported transports remain
+separate, and rotation alone does not establish SSD/HDD media. Capacity sums describe exposed
+disk devices, including logical devices.
 
 ## Compatibility
 

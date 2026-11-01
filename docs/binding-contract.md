@@ -1,10 +1,16 @@
 # Native binding contract
 
-`systemcard._native.collect(scope="default", sections=[])` returns JSON-compatible
-Python values through Sysal's public System::collect() and to_json() APIs.
-Scopes are default, basic, full; invalid scopes or sections fail before collection.
-An empty section list uses the scope preset. full requests raw evidence, but the
-returned public snapshot omits raw and includes meta.
+`systemcard._native.collect(domains, filesystems=FilesystemQuery.LOCAL, sensors=SensorDevices.ALL)`
+returns JSON-compatible values through Sysal's public collection and serialization APIs.
+`domains` contains exported `Domain` enum members; Python does not duplicate their bit values.
+Invalid enum policies and flags fail before collection. The native adapter contains no section,
+scope, card or terminal-width policy and releases the GIL during collection and serialization.
+
+`collector.collect(scope="default", sections=None)` preserves the Python-facing API.
+`collection_plan.py` owns default/basic/full presets and the section mapping below. It chooses
+local filesystem queries and `EXCLUDE_DISPLAY` sensors explicitly. Full adds `Domain.RAW`,
+which enables both raw acquisition and raw JSON output; normal display and sources do not
+request raw payloads. An empty section list uses the selected scope preset.
 
 All selected collections include Platform for the card header. Additional flags:
 
@@ -37,8 +43,8 @@ Memory current belongs to the leaf cgroup, while host memory belongs to the mach
 GPU uuid/parent_uuid identify physical and MIG devices; PCI addresses alone do not
 distinguish MIG instances. Missing fields in older snapshots degrade gracefully.
 
-The binding exposes no C++ instances and includes only public include/sysal headers
-from the versioned, SHA-256-pinned release package.
+The binding exposes no C++ snapshot instances and includes only public include/sysal headers
+from the versioned, SHA-256-pinned Sysal 0.0.26 release package.
 
 Card builders are selected before presentation work. Shared schema readers normalize
 mapping/list shapes and reject booleans as numeric quantities; formatters reject
@@ -231,3 +237,33 @@ that the domain or hardware failed. --sources uses the same selection and expand
 the origins and outcomes. Unknown failure reasons are explicitly marked; no cause
 is inferred from a missing value. Invalid top-level native snapshots produce a
 concise collection error instead of a normalization traceback.
+
+## Current evidence contract
+
+`meta.collection_request` records actual acquisition flags and typed policies; `requested_flags`
+records the current parse selection. RawStore carries the original request and independent
+enumerations. Replaying or restoring JSON never performs collection or discards evidence due to
+current defaults. Refresh requires known acquisition options; legacy unknown requests need an
+explicit new collection. Command bounds are unchanged; synchronous filesystem I/O has no hard
+timeout guarantee. Descriptor-based queries do not activate automounts or follow symlinks.
+
+`ReadFailure` and `SkipReason` remain distinct. Presentation uses typed skip reasons, while
+notes provide supplemental explanation. Unknown legacy fields do not become zero or false.
+Inventory reports are scoped to observed interfaces/namespaces. Cache and accelerator backend
+unions remain partial until independent completeness can be established.
+
+CPU `feature_summary` is derived by Sysal from per-thread tokens and `features_reported`.
+Aliases are library-owned; each report provides reported/not_reported/unknown CPU ID groups.
+Missing or offline reports leave the complete intersection unknown. Python only selects names,
+formats counts and validates JSON group shapes. `isa_extensions` remains a legacy first-CPU
+sample; the client uses the explicitly scoped common set and does not infer SMT support.
+
+Storage `classification` supplies independent layer, purpose, protocol and transport values.
+The raw rotation flag is displayed as rotating/non-rotating. Neither SCSI addresses nor ATA
+ports establish SAS/SATA. NVMe multipath transports retain distinct explicit reports.
+`kind` and string `layer` are legacy compatibility outputs; the client does not read them.
+Legacy snapshots lacking classification retain their reported identity fields and unknown
+classification, without client-side hardware inference.
+
+Network summaries consume the library interface_kind field; a PCI address in an older
+snapshot does not become a client-side physical-interface classification.

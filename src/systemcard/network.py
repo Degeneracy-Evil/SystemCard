@@ -26,12 +26,8 @@ def _links_up(interfaces: List[Mapping[str, Any]]) -> str:
 def _summary(
     network: Mapping[str, Any], interfaces: List[Mapping[str, Any]], confirmed: bool, complete: bool
 ) -> Tuple[Tuple[str, str], ...]:
-    physical = [
-        item
-        for item in interfaces
-        if item.get("interface_kind") == "physical" or (not item.get("interface_kind") and item.get("pci_address"))
-    ]
-    unclassified = sum(not item.get("interface_kind") and not item.get("pci_address") for item in interfaces)
+    physical = [item for item in interfaces if item.get("interface_kind") == "physical"]
+    unclassified = sum(not item.get("interface_kind") for item in interfaces)
     other_count = len(interfaces) - len(physical) - unclassified
     physical_count = str(len(physical)) if confirmed else UNKNOWN
     other = str(other_count) if confirmed else UNKNOWN
