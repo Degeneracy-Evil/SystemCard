@@ -36,10 +36,6 @@ def system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: b
         os_name = text(os_info.get("name"))
         if os_name != UNKNOWN and not distribution.lower().startswith(os_name.lower()):
             distribution = f"{os_name} {distribution}"
-    hardware = (
-        " ".join(part for part in (text(host.get("vendor")), text(host.get("product_name"))) if part != UNKNOWN)
-        or UNKNOWN
-    )
     bios = (
         " ".join(
             part for part in (text(firmware.get("bios_vendor")), text(firmware.get("bios_version"))) if part != UNKNOWN
@@ -55,8 +51,11 @@ def system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: b
         ("Operating system", distribution),
         ("Kernel", text(kernel.get("release"))),
         ("Architecture", arch),
-        ("Hardware", hardware),
-        ("Firmware", f"{bios} · {'UEFI' if firmware.get('uefi') is True else 'Legacy/unknown'}"),
+        ("Manufacturer", text(host.get("vendor"))),
+        ("Machine model", text(host.get("product_name"))),
+        ("Firmware", bios),
+        ("Firmware date", text(firmware.get("bios_date"))),
+        ("Boot mode", "UEFI" if firmware.get("uefi") is True else UNKNOWN),
     ]
     board = _mapping(platform.get("baseboard"))
     chassis = _mapping(platform.get("chassis"))
@@ -69,6 +68,7 @@ def system_card(platform: Mapping[str, Any], pci: Mapping[str, Any], detailed: b
                 _joined(
                     [
                         chassis.get("vendor"),
+                        chassis.get("version"),
                         f"SMBIOS type {chassis['type']}" if chassis.get("type") is not None else None,
                     ],
                     " · ",

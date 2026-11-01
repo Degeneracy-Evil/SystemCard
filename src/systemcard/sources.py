@@ -5,10 +5,12 @@ from typing import Any, Dict, List, Mapping, Set, Tuple
 from systemcard.collection_status import COLLECT_STATUSES, READ_FAILURES, collector_domain
 from systemcard.formatters import UNKNOWN, pci_address
 from systemcard.presentation_types import Card, DetailTable
-from systemcard.schema import integer_or, mapping_items, mapping_value
+from systemcard.schema import integer_or, integer_value, list_value, mapping_items, mapping_value
 
 
 def _source(origin: str) -> str:
+    if origin.startswith("statvfs/"):
+        return "Filesystem statistics"
     if origin.startswith(("smartctl/", "nvme-smart-log/")):
         return "Device health report"
     if origin.startswith("ethtool/"):
@@ -101,6 +103,13 @@ def with_source_gaps(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any
 
 def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -> Card:
     observations = _observations(card, meta, info)
+    filesystem_notes = {
+        "statvfs/" + str(identity): str(report["note"])
+        for report in mapping_items(mapping_value(info.get("storage")).get("filesystems"))
+        if report.get("note")
+        for identity in list_value(report.get("mount_ids"))
+        if integer_value(identity) is not None
+    }
     rows: Tuple[Tuple[str, ...], ...] = tuple(
         (
             _source(str(item.get("origin", ""))),
@@ -108,7 +117,10 @@ def with_sources(card: Card, meta: Mapping[str, Any], info: Mapping[str, Any]) -
             COLLECT_STATUSES.get(integer_or(item.get("status"), -1), "Unknown status"),
             READ_FAILURES.get(
                 integer_or(item.get("failure"), -1),
-                UNKNOWN if integer_or(item.get("status"), -1) == 0 else "Reason unknown",
+                filesystem_notes.get(
+                    str(item.get("origin", "")),
+                    UNKNOWN if integer_or(item.get("status"), -1) == 0 else "Reason unknown",
+                ),
             ),
         )
         for item in observations

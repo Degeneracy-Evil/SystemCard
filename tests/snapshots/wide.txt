@@ -1,11 +1,14 @@
 ──────────────────────────────────────────────── SystemCard · demo-node ────────────────────────────────────────────────
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮
-│ Host             demo-node                              │  │ Model              Demo CPU                             │
-│ Operating system Demo Linux 1.0                         │  │ Topology           1 packages · 2 cores · 4 logical     │
-│ Kernel           5.15.0                                 │  │ Process visibility 2 of 4 logical CPUs                  │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ CPU quota          1.5 CPUs                             │
-│ Hardware         —                                      │  │ NUMA               1 nodes                              │
-│ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │
+│ Host             demo-node                              │  │ Vendor                  —                               │
+│ Operating system Demo Linux 1.0                         │  │ Model                   Demo CPU                        │
+│ Kernel           5.15.0                                 │  │ Topology                1 sockets · 2 cores · 4 threads │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility      2 of 4 logical CPUs             │
+│ Manufacturer     —                                      │  │ CPU quota               1.5 CPUs                        │
+│ Machine model    —                                      │  │ NUMA                    1 nodes                         │
+│ Firmware         —                                      │  │ Frequency               base 2.40 GHz                   │
+│ Firmware date    —                                      │  │ SMT (kernel)            supported — · active —          │
+│ Boot mode        —                                      │  │ Current (policy report) —                               │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Memory ─────────────────────────╮  ╭───────────────────── Accelerators ──────────────────────╮
 │ Host total       64.0 GiB                               │  │ Summary            1 GPU · 1 MIG instances              │
@@ -17,10 +20,11 @@
 │ DIMM population  —                                      │  │                                                         │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭──────────────────────── Network ────────────────────────╮  ╭──────────────────────── Storage ────────────────────────╮
-│ Physical interfaces —                                   │  │ Whole disks         —                                   │
-│ Links up            —                                   │  │ Disk capacity       —                                   │
-│ Other interfaces    —                                   │  │ Models              —                                   │
-│ Unclassified        1                                   │  │ Other block devices —                                   │
+│ Physical interfaces —                                   │  │ Whole disks           —                                 │
+│ Links up            —                                   │  │ Disk capacity         —                                 │
+│ Other interfaces    —                                   │  │ Models                —                                 │
+│ Unclassified        1                                   │  │ Other block devices   —                                 │
+│                                                         │  │ Filesystem statistics —                                 │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯
 ╭─────────────────────── Software ────────────────────────╮  ╭─────────────────── Execution context ───────────────────╮
 │ Compilers  gcc 11.2.0                                   │  │ Process           systemcard · PID 123 · PPID 1         │

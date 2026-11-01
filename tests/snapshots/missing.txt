@@ -4,16 +4,22 @@
 │ Operating system —                                                           │
 │ Kernel           —                                                           │
 │ Architecture     —                                                           │
-│ Hardware         —                                                           │
-│ Firmware         — · Legacy/unknown                                          │
+│ Manufacturer     —                                                           │
+│ Machine model    —                                                           │
+│ Firmware         —                                                           │
+│ Firmware date    —                                                           │
+│ Boot mode        —                                                           │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭──────────────────────────────────── CPU ─────────────────────────────────────╮
-│ Model              —                                                         │
-│ Topology           — packages · — cores · — logical                          │
-│ Process visibility — of — logical CPUs                                       │
-│ CPU quota          —                                                         │
-│ NUMA               — nodes                                                   │
-│ Frequency          —                                                         │
+│ Vendor                  —                                                    │
+│ Model                   —                                                    │
+│ Topology                — sockets · — cores · — threads                      │
+│ Process visibility      — of — logical CPUs                                  │
+│ CPU quota               —                                                    │
+│ NUMA                    — nodes                                              │
+│ Frequency               —                                                    │
+│ SMT (kernel)            supported — · active —                               │
+│ Current (policy report) —                                                    │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭─────────────────────────────────── Memory ───────────────────────────────────╮
 │ Host total       —                                                           │
@@ -34,10 +40,11 @@
 │ Other interfaces    —                                                        │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Storage ───────────────────────────────────╮
-│ Whole disks         —                                                        │
-│ Disk capacity       —                                                        │
-│ Models              —                                                        │
-│ Other block devices —                                                        │
+│ Whole disks           —                                                      │
+│ Disk capacity         —                                                      │
+│ Models                —                                                      │
+│ Other block devices   —                                                      │
+│ Filesystem statistics —                                                      │
 ╰──────────────────────────────────────────────────────────────────────────────╯
 ╭────────────────────────────────── Software ──────────────────────────────────╮
 │ Compilers  —                                                                 │

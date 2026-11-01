@@ -51,6 +51,52 @@ ISA_EXTENSIONS = {
 }
 
 
+def _reported_frequency(policies: List[Mapping[str, Any]], key: str, scope: str = "policies") -> str:
+    values = [integer_value(policy.get(key)) for policy in policies]
+    known = [value for value in values if value is not None and value > 0]
+    if not known:
+        return UNKNOWN
+    result = frequency(min(known))
+    if min(known) != max(known):
+        result += " - " + frequency(max(known))
+    if len(known) != len(policies):
+        result += f" (known {len(known)}/{len(policies)} {scope})"
+    return result
+
+
+def _capabilities(logical: List[Mapping[str, Any]]) -> DetailTable:
+    features = (
+        ("SSE2", "sse2"),
+        ("SSE3", "pni"),
+        ("SSSE3", "ssse3"),
+        ("SSE4.1", "sse4_1"),
+        ("SSE4.2", "sse4_2"),
+        ("AES", "aes"),
+        ("AVX", "avx"),
+        ("AVX2", "avx2"),
+        ("AVX-512F", "avx512f"),
+        ("AVX-512 VNNI", "avx512_vnni"),
+        ("SHA", "sha_ni"),
+        ("BMI1", "bmi1"),
+        ("BMI2", "bmi2"),
+        ("F16C", "f16c"),
+        ("FMA", "fma"),
+        ("CMPXCHG16B", "cx16"),
+        ("LAHF/SAHF", "lahf_lm"),
+    )
+    rows: List[Tuple[str, ...]] = []
+    for label, flag in features:
+        ids = [
+            item.get("id") for item in logical if flag in _items(_mapping(item.get("identification")).get("features"))
+        ]
+        rows.append((label, f"Reported on {len(ids)}/{len(logical)} CPUs" if ids else "Not reported", cpu_list(ids)))
+    return DetailTable(
+        "Common x86 capabilities (kernel reports; absence does not prove unsupported)",
+        ("Capability", "Reported availability", "CPUs"),
+        tuple(rows),
+    )
+
+
 def _frequency_configuration(policies: List[Mapping[str, Any]]) -> DetailTable:
     """Group identical configuration; keep variable current reports as a range."""
     groups: Dict[
@@ -186,8 +232,8 @@ def cpu_card(
         frequency_range = " / ".join(
             part
             for part in (
-                f"base {frequency(max(base_frequencies))}" if base_frequencies else "",
-                f"max {frequency(max(max_frequencies))}" if max_frequencies else "",
+                f"base {_reported_frequency(packages, 'base_frequency', 'sockets')}" if base_frequencies else "",
+                f"max {_reported_frequency(packages, 'max_frequency', 'sockets')}" if max_frequencies else "",
             )
             if part
         )
@@ -245,6 +291,8 @@ def cpu_card(
         tables.append(DetailTable("Thermals", ("Sensor", "Zone", "Temperature"), thermal_rows))
     if detailed:
         tables.extend(_cpu_hardware_tables(cpu, logical))
+        if logical and architecture.lower().startswith(("x86", "amd64", "i386", "i486", "i586", "i686")):
+            tables.append(_capabilities(logical))
     hardware_rows: List[Tuple[str, str]] = []
     if cpu.get("caches") and all(item.get("shared_cpus") for item in _mappings(cpu.get("caches"))):
         hardware_rows.extend(
@@ -266,10 +314,13 @@ def cpu_card(
         online = str(len(_items(cpu["online_cpu_ids"]))) if isinstance(cpu.get("online_cpu_ids"), list) else UNKNOWN
         present = str(len(_items(cpu["present_cpu_ids"]))) if isinstance(cpu.get("present_cpu_ids"), list) else UNKNOWN
         hardware_rows.append(("CPU state", f"{online} online · {present} present"))
-    if "smt_active" in cpu or cpu.get("smt_control"):
-        active = cpu.get("smt_active")
-        state = "Active" if active is True else "Inactive" if active is False else UNKNOWN
-        hardware_rows.append(("SMT", f"{state} · control {text(cpu.get('smt_control'))}"))
+    supported = cpu.get("smt_supported")
+    if not isinstance(supported, bool):
+        control = cpu.get("smt_control")
+        supported = False if control == "notsupported" else True if control in {"on", "off", "forceoff"} else None
+    hardware_rows.append(("SMT (kernel)", f"supported {yes_no(supported)} · active {yes_no(cpu.get('smt_active'))}"))
+    if cpu.get("smt_control"):
+        hardware_rows.append(("SMT control", text(cpu.get("smt_control"))))
     if "boost_enabled" in cpu:
         hardware_rows.append(("Boost enabled", yes_no(cpu.get("boost_enabled"))))
     policies = _mappings(cpu.get("frequency_policies"))
@@ -286,16 +337,19 @@ def cpu_card(
         else UNKNOWN
     )
     rows = (
+        ("Vendor", " / ".join(dict.fromkeys(text(item.get("vendor")) for item in packages)) or UNKNOWN),
         ("Model", " / ".join(model_names) or UNKNOWN),
         ("Architecture", architecture),
         (
             "Topology",
-            "{} packages · {} cores · {} logical".format(counts["packages"], counts["cores"], counts["logical_cpus"]),
+            "{} sockets · {} cores · {} threads".format(counts["packages"], counts["cores"], counts["logical_cpus"]),
         ),
         ("Process visibility", "{} of {} logical CPUs".format(visibility, counts["logical_cpus"])),
         ("CPU quota", cpu_quota(cgroup)),
         ("NUMA", f"{counts['numa_nodes']} nodes"),
         ("Frequency", frequency_range),
+        ("Current hardware frequency", _reported_frequency(policies, "hardware_current_frequency")),
+        ("Current policy frequency", _reported_frequency(policies, "scaling_current_frequency")),
         ("Governor", text(cpu.get("governor"))),
         ("ISA", isa),
         ("Thermal zone maximum", temperature(max(thermal_values)) if thermal_values else UNKNOWN),
@@ -304,6 +358,25 @@ def cpu_card(
     if detailed:
         rows += (("Thread / cache links", "--section topology"),)
     if not detailed:
-        primary = {"Model", "Topology", "Process visibility", "CPU quota", "NUMA", "Frequency", "SMT"}
+        primary = {
+            "Vendor",
+            "Model",
+            "Topology",
+            "Process visibility",
+            "CPU quota",
+            "NUMA",
+            "Frequency",
+            "SMT (kernel)",
+        }
+        current_key = (
+            "hardware_current_frequency"
+            if _reported_frequency(policies, "hardware_current_frequency") != UNKNOWN
+            else "scaling_current_frequency"
+        )
+        current_label = (
+            "Current (hardware report)" if current_key == "hardware_current_frequency" else "Current (policy report)"
+        )
+        rows += ((current_label, _reported_frequency(policies, current_key)),)
+        primary.add(current_label)
         rows = tuple((label, value) for label, value in rows if label in primary or label.endswith(" cache"))
     return Card("cpu", "CPU", rows, tuple(tables) if detailed else ())

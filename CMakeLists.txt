@@ -7,11 +7,11 @@ find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 find_package(pybind11 CONFIG REQUIRED)
 
 # Keep the release and its hash fixed when an existing build directory is reused.
-set(SYSAL_VERSION "0.0.23")
+set(SYSAL_VERSION "0.0.25")
 set(SYSAL_PACKAGE_URL
     "https://github.com/Degeneracy-Evil/sysal/releases/download/v${SYSAL_VERSION}/sysal-${SYSAL_VERSION}-linux-x86_64.tar.gz")
 set(SYSAL_PACKAGE_SHA256
-    "0a9cc66f70593e2215b4e4dae73b2e3eff4b3ca79fe652ab1bc1db6c9c1ae7a4")
+    "51dc9c63e8abe3ed3925c90ed5cd0f2bf9b7172a5a54a4338210d6c8042eb03f")
 
 FetchContent_Declare(
     sysal_package

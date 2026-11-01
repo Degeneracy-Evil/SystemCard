@@ -8,16 +8,24 @@
 │ 5.15.0                               │
 │ Architecture                         │
 │ x86_64 (64-bit, little-endian)       │
-│ Hardware                             │
+│ Manufacturer                         │
+│ —                                    │
+│ Machine model                        │
 │ —                                    │
 │ Firmware                             │
-│ — · Legacy/unknown                   │
+│ —                                    │
+│ Firmware date                        │
+│ —                                    │
+│ Boot mode                            │
+│ —                                    │
 ╰──────────────────────────────────────╯
 ╭──────────────── CPU ─────────────────╮
+│ Vendor                               │
+│ —                                    │
 │ Model                                │
 │ Demo CPU                             │
 │ Topology                             │
-│ 1 packages · 2 cores · 4 logical     │
+│ 1 sockets · 2 cores · 4 threads      │
 │ Process visibility                   │
 │ 2 of 4 logical CPUs                  │
 │ CPU quota                            │
@@ -26,6 +34,10 @@
 │ 1 nodes                              │
 │ Frequency                            │
 │ base 2.40 GHz                        │
+│ SMT (kernel)                         │
+│ supported — · active —               │
+│ Current (policy report)              │
+│ —                                    │
 ╰──────────────────────────────────────╯
 ╭─────────────── Memory ───────────────╮
 │ Host total                           │
@@ -67,6 +79,8 @@
 │ Models                               │
 │ —                                    │
 │ Other block devices                  │
+│ —                                    │
+│ Filesystem statistics                │
 │ —                                    │
 ╰──────────────────────────────────────╯
 ╭────────────── Software ──────────────╮

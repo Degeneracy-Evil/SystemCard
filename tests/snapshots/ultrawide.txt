@@ -1,18 +1,21 @@
 ────────────────────────────────────────────────────────────────────────────── SystemCard · demo-node ──────────────────────────────────────────────────────────────────────────────
 ╭──────────────────────── System ─────────────────────────╮  ╭────────────────────────── CPU ──────────────────────────╮  ╭──────────────────────── Memory ────────────────────────╮
-│ Host             demo-node                              │  │ Model              Demo CPU                             │  │ Host total       64.0 GiB                              │
-│ Operating system Demo Linux 1.0                         │  │ Topology           1 packages · 2 cores · 4 logical     │  │ Cgroup limit     16.0 GiB                              │
-│ Kernel           5.15.0                                 │  │ Process visibility 2 of 4 logical CPUs                  │  │ Cgroup current   8.0 GiB                               │
-│ Architecture     x86_64 (64-bit, little-endian)         │  │ CPU quota          1.5 CPUs                             │  │ Used / available 16.0 GiB / 48.0 GiB                   │
-│ Hardware         —                                      │  │ NUMA               1 nodes                              │  │ Technology       DDR4                                  │
-│ Firmware         — · Legacy/unknown                     │  │ Frequency          base 2.40 GHz                        │  │ Configured speed 3200 MT/s                             │
-│                                                         │  │                                                         │  │ DIMM population  —                                     │
+│ Host             demo-node                              │  │ Vendor                  —                               │  │ Host total       64.0 GiB                              │
+│ Operating system Demo Linux 1.0                         │  │ Model                   Demo CPU                        │  │ Cgroup limit     16.0 GiB                              │
+│ Kernel           5.15.0                                 │  │ Topology                1 sockets · 2 cores · 4 threads │  │ Cgroup current   8.0 GiB                               │
+│ Architecture     x86_64 (64-bit, little-endian)         │  │ Process visibility      2 of 4 logical CPUs             │  │ Used / available 16.0 GiB / 48.0 GiB                   │
+│ Manufacturer     —                                      │  │ CPU quota               1.5 CPUs                        │  │ Technology       DDR4                                  │
+│ Machine model    —                                      │  │ NUMA                    1 nodes                         │  │ Configured speed 3200 MT/s                             │
+│ Firmware         —                                      │  │ Frequency               base 2.40 GHz                   │  │ DIMM population  —                                     │
+│ Firmware date    —                                      │  │ SMT (kernel)            supported — · active —          │  │                                                        │
+│ Boot mode        —                                      │  │ Current (policy report) —                               │  │                                                        │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭───────────────────── Accelerators ──────────────────────╮  ╭──────────────────────── Network ────────────────────────╮  ╭─────────────────────── Storage ────────────────────────╮
-│ Summary            1 GPU · 1 MIG instances              │  │ Physical interfaces —                                   │  │ Whole disks         —                                  │
-│ Process visibility 1 of 2 observed devices              │  │ Links up            —                                   │  │ Disk capacity       —                                  │
-│                                                         │  │ Other interfaces    —                                   │  │ Models              —                                  │
-│                                                         │  │ Unclassified        1                                   │  │ Other block devices —                                  │
+│ Summary            1 GPU · 1 MIG instances              │  │ Physical interfaces —                                   │  │ Whole disks           —                                │
+│ Process visibility 1 of 2 observed devices              │  │ Links up            —                                   │  │ Disk capacity         —                                │
+│                                                         │  │ Other interfaces    —                                   │  │ Models                —                                │
+│                                                         │  │ Unclassified        1                                   │  │ Other block devices   —                                │
+│                                                         │  │                                                         │  │ Filesystem statistics —                                │
 ╰─────────────────────────────────────────────────────────╯  ╰─────────────────────────────────────────────────────────╯  ╰────────────────────────────────────────────────────────╯
 ╭─────────────────────── Software ────────────────────────╮  ╭─────────────────── Execution context ───────────────────╮  ╭────────────────── Hardware topology ───────────────────╮
 │ Compilers  gcc 11.2.0                                   │  │ Process           systemcard · PID 123 · PPID 1         │  │ NUMA domains           —                               │
